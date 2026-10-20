@@ -90,8 +90,15 @@
 
         <form id="form" novalidate>
           <!-- Paso 1 -->
-          <fieldset class="step" data-title="Sobre usted">
-            <legend class="sec-title"><i class="fa-solid fa-user"></i> Sobre usted</legend>
+          <fieldset class="step tema-1" data-title="Sobre usted">
+            <legend class="sec-title">
+              <span class="sec-ico"><i class="fa-solid fa-user"></i></span>
+              <span class="sec-txt">
+                <small>Sección 1 de 5 · Preguntas 1 a 3</small>
+                <span class="sec-nombre">Sobre usted</span>
+                <span class="sec-desc">Cuéntenos un poco sobre usted.</span>
+              </span>
+            </legend>
 
             <div class="q card" data-required>
               <label class="q-title" for="filial"><span class="num">1</span> Filial o Núcleo al que pertenece <b class="req">*</b></label>
@@ -127,8 +134,15 @@
           </fieldset>
 
           <!-- Paso 2 -->
-          <fieldset class="step" data-title="Servicios">
-            <legend class="sec-title"><i class="fa-solid fa-handshake"></i> Servicios</legend>
+          <fieldset class="step tema-2" data-title="Servicios">
+            <legend class="sec-title">
+              <span class="sec-ico"><i class="fa-solid fa-handshake"></i></span>
+              <span class="sec-txt">
+                <small>Sección 2 de 5 · Preguntas 4 a 6</small>
+                <span class="sec-nombre">Servicios</span>
+                <span class="sec-desc">Los servicios de ADEP que ha utilizado.</span>
+              </span>
+            </legend>
 
             <div class="q card" data-required>
               <p class="q-title"><span class="num">4</span> ¿Cuáles de los siguientes servicios ha utilizado? <b class="req">*</b></p>
@@ -151,8 +165,15 @@
           </fieldset>
 
           <!-- Paso 3 -->
-          <fieldset class="step" data-title="Su experiencia">
-            <legend class="sec-title"><i class="fa-solid fa-star"></i> Su experiencia</legend>
+          <fieldset class="step tema-3" data-title="Su experiencia">
+            <legend class="sec-title">
+              <span class="sec-ico"><i class="fa-solid fa-star"></i></span>
+              <span class="sec-txt">
+                <small>Sección 3 de 5 · Preguntas 7 a 9</small>
+                <span class="sec-nombre">Su experiencia</span>
+                <span class="sec-desc">Cómo valora a la ADEP en su vida.</span>
+              </span>
+            </legend>
 
             <div class="q card" data-required>
               <p class="q-title"><span class="num">7</span> ¿Cómo califica los siguientes aspectos de ADEP? <b class="req">*</b></p>
@@ -164,10 +185,10 @@
             <div class="q card" data-required>
               <p class="q-title"><span class="num">8</span> ¿Considera que ADEP mejora su bienestar y calidad de vida? <b class="req">*</b></p>
               <div class="options cols-4" role="radiogroup">
-                <label class="opt"><input type="radio" name="bienestar" value="Mucho"><span>Mucho</span></label>
-                <label class="opt"><input type="radio" name="bienestar" value="Algo"><span>Algo</span></label>
-                <label class="opt"><input type="radio" name="bienestar" value="Poco"><span>Poco</span></label>
-                <label class="opt"><input type="radio" name="bienestar" value="Nada"><span>Nada</span></label>
+                <label class="opt"><input type="radio" name="bienestar" value="Mucho"><span><i class="fa-regular fa-face-laugh-beam ico"></i> Mucho</span></label>
+                <label class="opt"><input type="radio" name="bienestar" value="Algo"><span><i class="fa-regular fa-face-smile ico"></i> Algo</span></label>
+                <label class="opt"><input type="radio" name="bienestar" value="Poco"><span><i class="fa-regular fa-face-meh ico"></i> Poco</span></label>
+                <label class="opt"><input type="radio" name="bienestar" value="Nada"><span><i class="fa-regular fa-face-frown ico"></i> Nada</span></label>
               </div>
               <p class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> Seleccione una opción.</p>
             </div>
@@ -175,17 +196,24 @@
             <div class="q card" data-required>
               <p class="q-title"><span class="num">9</span> ¿Recomendaría usted a la ADEP a otras personas trabajadoras de la Educación? <b class="req">*</b></p>
               <div class="options cols-3" role="radiogroup">
-                <label class="opt"><input type="radio" name="recomendaria" value="Sí"><span>Sí</span></label>
-                <label class="opt"><input type="radio" name="recomendaria" value="No"><span>No</span></label>
-                <label class="opt"><input type="radio" name="recomendaria" value="No estoy seguro(a)"><span>No estoy seguro(a)</span></label>
+                <label class="opt"><input type="radio" name="recomendaria" value="Sí"><span><i class="fa-solid fa-thumbs-up ico"></i> Sí</span></label>
+                <label class="opt"><input type="radio" name="recomendaria" value="No"><span><i class="fa-solid fa-thumbs-down ico"></i> No</span></label>
+                <label class="opt"><input type="radio" name="recomendaria" value="No estoy seguro(a)"><span><i class="fa-solid fa-circle-question ico"></i> No estoy seguro(a)</span></label>
               </div>
               <p class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> Seleccione una opción.</p>
             </div>
           </fieldset>
 
           <!-- Paso 4 -->
-          <fieldset class="step" data-title="Comunicación">
-            <legend class="sec-title"><i class="fa-solid fa-comments"></i> Comunicación</legend>
+          <fieldset class="step tema-4" data-title="Comunicación">
+            <legend class="sec-title">
+              <span class="sec-ico"><i class="fa-solid fa-comments"></i></span>
+              <span class="sec-txt">
+                <small>Sección 4 de 5 · Preguntas 10 y 11</small>
+                <span class="sec-nombre">Comunicación</span>
+                <span class="sec-desc">Cómo prefiere informarse y comunicarse.</span>
+              </span>
+            </legend>
 
             <div class="q card" data-required>
               <p class="q-title"><span class="num">10</span> ¿Cuáles de los siguientes canales de comunicación de la ADEP utiliza usted con mayor frecuencia? <b class="req">*</b></p>
@@ -212,8 +240,15 @@
           </fieldset>
 
           <!-- Paso 5 -->
-          <fieldset class="step" data-title="Sus ideas">
-            <legend class="sec-title"><i class="fa-solid fa-lightbulb"></i> Sus ideas</legend>
+          <fieldset class="step tema-5" data-title="Sus ideas">
+            <legend class="sec-title">
+              <span class="sec-ico"><i class="fa-solid fa-lightbulb"></i></span>
+              <span class="sec-txt">
+                <small>Sección 5 de 5 · Preguntas 12 a 14</small>
+                <span class="sec-nombre">Sus ideas</span>
+                <span class="sec-desc">Sus sugerencias nos ayudan a mejorar.</span>
+              </span>
+            </legend>
 
             <div class="q card">
               <label class="q-title" for="fortalecer"><span class="num">12</span> ¿Qué servicios considera que debieran fortalecerse en ADEP?</label>

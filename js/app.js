@@ -78,6 +78,10 @@
         l.innerHTML = '<input type="radio" name="' + name + '" value="' + v + '" aria-label="' + v + '"><span>' + v + "</span>";
         scale.appendChild(l);
       }
+      var val = document.createElement("span");
+      val.className = "m-val";
+      val.setAttribute("aria-live", "polite");
+      lab.appendChild(val);
       row.appendChild(lab);
       row.appendChild(scale);
       container.appendChild(row);
@@ -126,24 +130,26 @@
     current = i;
     steps[i].classList.add("active");
     if (back) steps[i].classList.add("back");
+    $$(".q", steps[i]).forEach(function (q, k) { q.style.setProperty("--i", k); });
     $("#prev").style.visibility = i === 0 ? "hidden" : "visible";
     $("#next").hidden = i === steps.length - 1;
     $("#submit").hidden = i !== steps.length - 1;
     $("#form-status").textContent = "";
     updateProgress();
+    refreshStepReady();
     saveDraft();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ---------- Validación ---------- */
-  function validateQuestion(q) {
+  function isAnswered(q, marcar) {
     var ok = true;
     var matrix = $(".matrix", q);
     if (matrix) {
       $$(".m-row", matrix).forEach(function (row) {
         if (row.hidden) return;
         var rated = !!$("input:checked", row);
-        row.classList.toggle("missing", !rated);
+        if (marcar) row.classList.toggle("missing", !rated);
         if (!rated) ok = false;
       });
     } else if ($("select", q)) {
@@ -154,8 +160,35 @@
     } else {
       ok = !!$("input:checked", q);
     }
+    return ok;
+  }
+
+  function validateQuestion(q) {
+    var ok = isAnswered(q, true);
     q.classList.toggle("invalid", !ok);
     return ok;
+  }
+
+  /* ---------- Estado visual: respondida, calificación y sección lista ---------- */
+  var NIVELES = ["", "Muy malo", "Malo", "Regular", "Bueno", "Excelente"];
+  function refreshQuestion(q) {
+    q.classList.toggle("answered", isAnswered(q, false));
+  }
+  function refreshRow(row) {
+    var c = $("input:checked", row);
+    row.classList.toggle("rated", !!c);
+    row.dataset.v = c ? c.value : "";
+    $(".m-val", row).textContent = c ? NIVELES[c.value] : "";
+  }
+  function refreshStepReady() {
+    var listo = $$(".q[data-required]", steps[current]).every(function (q) { return isAnswered(q, false); });
+    $("#next").classList.toggle("listo", listo);
+    $("#submit").classList.toggle("listo", listo);
+  }
+  function refreshAll() {
+    $$(".m-row", form).forEach(refreshRow);
+    $$(".q", form).forEach(refreshQuestion);
+    refreshStepReady();
   }
 
   function validateStep(i) {
@@ -174,15 +207,19 @@
     var q = e.target.closest(".q");
     if (e.target.closest(".m-row")) {
       var row = e.target.closest(".m-row");
-      row.classList.add("rated");
       row.classList.remove("missing");
+      refreshRow(row);
     }
     if (q && q.classList.contains("invalid")) validateQuestion(q);
+    $$(".q", steps[current]).forEach(refreshQuestion);
+    refreshStepReady();
     saveDraft();
   });
   form.addEventListener("input", function (e) {
     var q = e.target.closest(".q");
     if (q && q.classList.contains("invalid")) validateQuestion(q);
+    if (q) refreshQuestion(q);
+    refreshStepReady();
     saveDraft();
   });
 
@@ -245,7 +282,6 @@
         if (v === undefined) return;
         if (el.type === "radio" || el.type === "checkbox") {
           el.checked = v.indexOf(el.value) !== -1;
-          if (el.checked && el.closest(".m-row")) el.closest(".m-row").classList.add("rated");
         } else {
           el.value = v;
         }
@@ -305,13 +341,16 @@
   $("#start").addEventListener("click", function () {
     $("#intro").hidden = true;
     $("#survey").hidden = false;
-    showStep(loadDraft());
+    var paso = loadDraft();
+    refreshAll();
+    showStep(paso);
   });
   $("#again").addEventListener("click", function () {
     form.reset();
     syncFilial();
-    $$(".m-row").forEach(function (r) { r.classList.remove("rated", "missing"); r.hidden = false; });
+    $$(".m-row").forEach(function (r) { r.classList.remove("missing"); r.hidden = false; });
     $$(".q").forEach(function (q) { q.classList.remove("invalid"); });
+    refreshAll();
     $("#thanks").hidden = true;
     $("#intro").hidden = false;
     window.scrollTo({ top: 0 });
