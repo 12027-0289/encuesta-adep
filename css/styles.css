@@ -542,29 +542,17 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .saludo-ico { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 50%; background: #fdf3d3; color: #c99a1e; font-size: 1.05rem; animation: gira-suave 6s ease-in-out infinite alternate; }
 @keyframes gira-suave { to { transform: rotate(18deg) scale(1.08); } }
 
-/* Foto de la sede: franja ancha debajo de la portada */
-.sede {
-  grid-column: 1 / -1; position: relative; overflow: hidden;
-  min-height: 19rem; margin: .5rem 0 0; border-radius: 1.75rem;
-  display: flex; align-items: flex-end;
+/* Foto de la sede detrás del logo */
+.foto-fondo {
+  position: absolute; inset: -5% -3%; border-radius: 2.5rem;
   background:
-    linear-gradient(90deg, rgba(4, 73, 42, .88) 0%, rgba(4, 73, 42, .55) 45%, rgba(4, 73, 42, 0) 75%),
-    url('../assets/foto-adep.jpg') center 62% / cover no-repeat;
+    linear-gradient(180deg, rgba(245, 249, 246, .15), rgba(4, 73, 42, .35)),
+    url('../assets/foto-adep.jpg') center 60% / cover no-repeat;
   box-shadow: var(--shadow);
-  animation: sube .7s .2s ease-out both;
+  animation: acerca 20s ease-in-out infinite alternate;
 }
-.sede-txt { position: relative; z-index: 1; max-width: 30rem; padding: 2rem 2.2rem; color: #fff; }
-.sede-etq {
-  display: inline-flex; align-items: center; gap: .45rem; padding: .3rem .85rem; border-radius: 999px;
-  background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .3);
-  font-size: .82rem; font-weight: 700; letter-spacing: .04em;
-}
-.sede-frase { margin: .7rem 0 .4rem; font-family: 'Outfit', sans-serif; font-size: 1.85rem; font-weight: 800; line-height: 1.15; }
-.sede-lema { margin: 0; color: var(--g-mint); font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-.sede figcaption {
-  position: absolute; right: 1rem; bottom: 1rem; padding: .3rem .8rem; border-radius: 999px;
-  background: rgba(0, 0, 0, .4); color: #fff; font-size: .78rem; font-weight: 600;
-}
+@keyframes acerca { to { background-size: auto, 112%; } }
+.portada-arte .aro-1 { inset: 4%; }
 
 /* Botón instalar */
 .instalar {
@@ -697,7 +685,7 @@ html.hc .opt input:checked + span .ico { color: #fff; }
 html.hc .scale input:checked + span { background: #000; color: #fff; }
 html.hc .lead, html.hc .hint, html.hc .nota, html.hc .mini-datos, html.hc .m-label, html.hc .pasos li, html.hc .lateral-nota { color: #000 !important; }
 html.hc .portada h1, html.hc .sec-title, html.hc .resalta { color: #003d1f !important; background: none; }
-html.hc .hojas, html.hc .aro, html.hc .app-header::after, html.hc .sec-title::before, html.hc .sec-title::after { display: none; }
+html.hc .hojas, html.hc .foto-fondo, html.hc .aro, html.hc .app-header::after, html.hc .sec-title::before, html.hc .sec-title::after { display: none; }
 html.hc .sec-title { background: #04331d !important; }
 html.hc .opt > span::before { background-color: #fff; }
 html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
@@ -722,10 +710,6 @@ html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
   .valor { font-size: .75rem; padding: .35rem .7rem; }
   .v1 { left: -10%; } .v2 { left: -12%; } .v3 { right: -14%; }
   .ing-fila .btn { width: 100%; }
-  .sede { min-height: 16rem; background: linear-gradient(0deg, rgba(4, 73, 42, .92) 0%, rgba(4, 73, 42, .4) 60%, rgba(4, 73, 42, .1) 100%), url('../assets/foto-adep.jpg') center / cover no-repeat; }
-  .sede-txt { padding: 1.4rem; }
-  .sede-frase { font-size: 1.4rem; }
-  .sede figcaption { top: 1rem; bottom: auto; }
   .leer span { display: none; }
   .leer { padding: 0; width: 38px; justify-content: center; }
   .instalar span { display: none; }
