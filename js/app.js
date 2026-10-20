@@ -84,7 +84,7 @@
   function updateProgress() {
     var pct = Math.round((current / steps.length) * 100);
     $("#progress-bar").style.width = pct + "%";
-    $(".progress").setAttribute("aria-valuenow", pct);
+    $(".barra").setAttribute("aria-valuenow", pct);
     $("#step-percent").textContent = pct + "% completado";
     $("#step-label").textContent = "Sección " + (current + 1) + " de " + steps.length + " · " + steps[current].dataset.title;
     $$("li", dots).forEach(function (li, i) {
@@ -104,7 +104,7 @@
     $("#form-status").textContent = "";
     updateProgress();
     saveDraft();
-    window.scrollTo({ top: $("#survey").offsetTop - 70, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ---------- Validación ---------- */
@@ -235,7 +235,7 @@
     }
     var btn = $("#submit");
     btn.disabled = true;
-    btn.textContent = "Enviando…";
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…';
     var data = collect();
 
     var send = cfg.endpoint
@@ -261,12 +261,11 @@
       $("#thanks").hidden = false;
       $("#thanks").focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
-      confetti();
     }).catch(function () {
       $("#form-status").textContent = "No se pudo enviar. Revise su conexión e intente de nuevo.";
     }).finally(function () {
       btn.disabled = false;
-      btn.textContent = "Enviar encuesta ✓";
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar encuesta';
     });
   });
 
@@ -285,47 +284,36 @@
     window.scrollTo({ top: 0 });
   });
 
-  /* ---------- Tamaño de letra ---------- */
-  var fs = 19;
-  try { fs = parseInt(localStorage.getItem("adep-fs"), 10) || 19; } catch (e) { /* nada */ }
-  document.documentElement.style.setProperty("--fs", fs + "px");
-  $$("[data-font]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      fs = Math.max(15, Math.min(26, fs + parseInt(b.dataset.font, 10) * 2));
-      document.documentElement.style.setProperty("--fs", fs + "px");
-      try { localStorage.setItem("adep-fs", fs); } catch (e) { /* nada */ }
-    });
+  /* ---------- Accesibilidad: tamaño de letra y contraste ---------- */
+  var root = document.documentElement;
+  var nivel = 0;
+  try {
+    nivel = parseInt(localStorage.getItem("adep-fs"), 10) || 0;
+    if (localStorage.getItem("adep-hc") === "1") root.classList.add("hc");
+  } catch (e) { /* nada */ }
+  function aplicarLetra() {
+    root.classList.remove("fs-1", "fs-2");
+    if (nivel > 0) root.classList.add("fs-" + nivel);
+    try { localStorage.setItem("adep-fs", nivel); } catch (e) { /* nada */ }
+  }
+  aplicarLetra();
+  $("#a11y-menos").addEventListener("click", function () { nivel = Math.max(0, nivel - 1); aplicarLetra(); });
+  $("#a11y-mas").addEventListener("click", function () { nivel = Math.min(2, nivel + 1); aplicarLetra(); });
+  var hcBtn = $("#a11y-hc");
+  hcBtn.setAttribute("aria-pressed", root.classList.contains("hc"));
+  hcBtn.addEventListener("click", function () {
+    var on = root.classList.toggle("hc");
+    hcBtn.setAttribute("aria-pressed", on);
+    try { localStorage.setItem("adep-hc", on ? "1" : "0"); } catch (e) { /* nada */ }
   });
 
-  $("#year").textContent = new Date().getFullYear();
-
-  /* ---------- Confeti ---------- */
-  function confetti() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    var c = $("#confetti"), ctx = c.getContext("2d");
-    c.width = innerWidth; c.height = innerHeight;
-    var colors = ["#e32019", "#008340", "#005a2c", "#8fd19e", "#ffffff"];
-    var parts = [];
-    for (var i = 0; i < 160; i++) {
-      parts.push({
-        x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.5,
-        w: 6 + Math.random() * 8, h: 8 + Math.random() * 10,
-        vy: 2 + Math.random() * 3.5, vx: -1.5 + Math.random() * 3,
-        r: Math.random() * Math.PI, vr: -0.2 + Math.random() * 0.4,
-        color: colors[i % colors.length],
-      });
-    }
-    var start = performance.now();
-    (function frame(t) {
-      ctx.clearRect(0, 0, c.width, c.height);
-      parts.forEach(function (p) {
-        p.x += p.vx; p.y += p.vy; p.r += p.vr;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
-        ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-        ctx.restore();
-      });
-      if (t - start < 4500) requestAnimationFrame(frame);
-      else ctx.clearRect(0, 0, c.width, c.height);
-    })(start);
+  // Altura del encabezado fijo, para que la barra de progreso quede justo debajo
+  function medirEncabezado() {
+    root.style.setProperty("--head-h", $(".app-header").offsetHeight + "px");
   }
+  medirEncabezado();
+  window.addEventListener("resize", medirEncabezado);
+  $$("#a11y-bar button").forEach(function (b) { b.addEventListener("click", medirEncabezado); });
+
+  $("#year").textContent = new Date().getFullYear();
 })();
