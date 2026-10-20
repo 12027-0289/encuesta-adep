@@ -304,7 +304,7 @@
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var c = $("#confetti"), ctx = c.getContext("2d");
     c.width = innerWidth; c.height = innerHeight;
-    var colors = ["#f2b705", "#1456a8", "#2a9d5c", "#3d8bfd", "#ffffff"];
+    var colors = ["#d32027", "#16793f", "#0b4a2a", "#8fd19e", "#ffffff"];
     var parts = [];
     for (var i = 0; i < 160; i++) {
       parts.push({

@@ -40,7 +40,7 @@ endpoint: "https://script.google.com/macros/s/XXXXXXXX/exec",
 
 ## Personalizar
 
-- **Colores:** variables `--adep-*` al inicio de `css/styles.css`.
+- **Colores:** variables `--adep-*` (verde oscuro, verde, verde claro, rojo y blanco) al inicio de `css/styles.css`.
 - **Servicios (preguntas 4 y 5) y aspectos (pregunta 7):** listas en `js/config.js`.
 - **Logo:** reemplace `assets/logo.svg` por el logo oficial de ADEP.
 
