@@ -29,6 +29,17 @@ google-apps-script/Code.gs Script para recibir respuestas en Google Sheets
 2. Instale la extensión recomendada **Live Server**.
 3. Clic derecho en `index.html` → **Open with Live Server**.
 
+## Una respuesta por persona
+
+Al comenzar se pide la cédula. En el navegador se cifra con SHA-256 junto con el texto `sal`
+de `js/config.js`, y solo ese código cifrado (`id_persona`) se envía. El script de Google
+rechaza una segunda respuesta con el mismo código. Cambie `sal` una sola vez antes de publicar.
+
+## Dictado por voz
+
+Las preguntas abiertas tienen un botón **Dictar con mi voz** (Chrome, Edge y Safari).
+Necesita que la página se abra por `https` (GitHub Pages) o desde Live Server.
+
 ## Recibir las respuestas (Google Sheets)
 
 Sin configuración, la encuesta funciona en **modo demostración**: las respuestas solo se guardan en el navegador.

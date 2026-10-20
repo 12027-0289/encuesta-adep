@@ -259,7 +259,7 @@
   }
 
   /* ---------- Borrador local ---------- */
-  var DRAFT_KEY = "adep-encuesta-borrador";
+  var DRAFT_KEY = "adep-encuesta-borrador";  // se vuelve única por cédula al comenzar
   function saveDraft() {
     try {
       var state = { step: current, values: {} };
@@ -295,6 +295,41 @@
     try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* nada */ }
   }
 
+  /* ---------- Una respuesta por persona (cédula cifrada) ---------- */
+  var idPersona = "";
+  var LOCAL_IDS = "adep-cedulas-respondidas";
+
+  function limpiarCedula(v) { return String(v || "").replace(/\D/g, ""); }
+
+  function cifrar(cedula) {
+    var bytes = new TextEncoder().encode((cfg.sal || "") + "|" + cedula);
+    return crypto.subtle.digest("SHA-256", bytes).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (x) {
+        return ("0" + x.toString(16)).slice(-2);
+      }).join("");
+    });
+  }
+
+  function idsLocales() {
+    try { return JSON.parse(localStorage.getItem(LOCAL_IDS) || "[]"); } catch (e) { return []; }
+  }
+  function guardarIdLocal(id) {
+    try {
+      var ids = idsLocales();
+      if (ids.indexOf(id) === -1) ids.push(id);
+      localStorage.setItem(LOCAL_IDS, JSON.stringify(ids));
+    } catch (e) { /* nada */ }
+  }
+
+  // Pregunta al servidor (Google Apps Script) si esa cédula ya respondió.
+  function yaRespondio(id) {
+    if (idsLocales().indexOf(id) !== -1) return Promise.resolve(true);
+    if (!cfg.endpoint) return Promise.resolve(false);
+    return fetch(cfg.endpoint + "?verificar=" + encodeURIComponent(id))
+      .then(function (r) { return r.json(); })
+      .then(function (j) { return !!j.existe; });
+  }
+
   /* ---------- Envío ---------- */
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -305,13 +340,16 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…';
     var data = collect();
+    data.id_persona = idPersona;
 
     var send = cfg.endpoint
       ? fetch(cfg.endpoint, {
           method: "POST",
-          mode: "no-cors",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(data),
+        }).then(function (r) { return r.json(); }).then(function (j) {
+          if (j.duplicado) throw new Error("duplicado");
+          if (!j.ok) throw new Error("error");
         })
       : new Promise(function (resolve) {
           try {
@@ -324,13 +362,17 @@
         });
 
     send.then(function () {
+      guardarIdLocal(idPersona);
       clearDraft();
       $("#survey").hidden = true;
       $("#thanks").hidden = false;
       $("#thanks").focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }).catch(function () {
-      $("#form-status").textContent = "No se pudo enviar. Revise su conexión e intente de nuevo.";
+      setTimeout(confeti, 250);
+    }).catch(function (err) {
+      $("#form-status").textContent = err && err.message === "duplicado"
+        ? "Esta cédula ya respondió la encuesta. Solo se permite una respuesta por persona."
+        : "No se pudo enviar. Revise su conexión e intente de nuevo.";
     }).finally(function () {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar encuesta';
@@ -338,12 +380,55 @@
   });
 
   /* ---------- Portada / reinicio ---------- */
+  var cedulaInput = $("#cedula");
+  var cedulaError = $("#cedula-error");
+  cedulaInput.addEventListener("input", function () {
+    var limpio = limpiarCedula(cedulaInput.value);
+    if (limpio !== cedulaInput.value) cedulaInput.value = limpio;
+    cedulaError.textContent = "";
+    cedulaInput.classList.remove("mal");
+  });
+  cedulaInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") $("#start").click();
+  });
+
+  function errorCedula(msg) {
+    cedulaError.textContent = msg;
+    cedulaInput.classList.add("mal");
+    cedulaInput.focus();
+  }
+
   $("#start").addEventListener("click", function () {
-    $("#intro").hidden = true;
-    $("#survey").hidden = false;
-    var paso = loadDraft();
-    refreshAll();
-    showStep(paso);
+    var ced = limpiarCedula(cedulaInput.value);
+    if (ced.length < 9 || ced.length > 12) {
+      errorCedula("Escriba su cédula completa: 9 números (o de 10 a 12 si es DIMEX), sin guiones.");
+      return;
+    }
+    if (!window.crypto || !crypto.subtle) {
+      errorCedula("Abra la encuesta desde su dirección segura (https) para poder continuar.");
+      return;
+    }
+    var btn = $("#start");
+    btn.disabled = true;
+    cifrar(ced).then(function (id) {
+      idPersona = id;
+      return yaRespondio(id);
+    }).then(function (respondio) {
+      if (respondio) {
+        errorCedula("Esta cédula ya respondió la encuesta. ¡Gracias por su participación!");
+        return;
+      }
+      DRAFT_KEY = "adep-encuesta-borrador-" + idPersona.slice(0, 16);
+      $("#intro").hidden = true;
+      $("#survey").hidden = false;
+      var paso = loadDraft();
+      refreshAll();
+      showStep(paso);
+    }).catch(function () {
+      errorCedula("No se pudo verificar la cédula. Revise su conexión e intente de nuevo.");
+    }).finally(function () {
+      btn.disabled = false;
+    });
   });
   $("#again").addEventListener("click", function () {
     form.reset();
@@ -351,10 +436,122 @@
     $$(".m-row").forEach(function (r) { r.classList.remove("missing"); r.hidden = false; });
     $$(".q").forEach(function (q) { q.classList.remove("invalid"); });
     refreshAll();
+    idPersona = "";
+    cedulaInput.value = "";
     $("#thanks").hidden = true;
     $("#intro").hidden = false;
     window.scrollTo({ top: 0 });
   });
+
+  /* ---------- Dictado por voz en las respuestas abiertas ---------- */
+  var Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var dictando = null;
+
+  function agregarMicrofono(campo) {
+    var boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "mic";
+    boton.setAttribute("aria-label", "Dictar la respuesta con la voz");
+    boton.innerHTML = '<i class="fa-solid fa-microphone"></i><span>Dictar con mi voz</span>';
+    campo.insertAdjacentElement("afterend", boton);
+
+    boton.addEventListener("click", function () {
+      if (dictando && dictando.campo === campo) { dictando.rec.stop(); return; }
+      if (dictando) dictando.rec.stop();
+
+      var rec = new Reconocimiento();
+      rec.lang = "es-CR";
+      rec.continuous = true;
+      rec.interimResults = true;
+      var base = campo.value.trim();
+      var final = "";
+
+      rec.onresult = function (ev) {
+        var parcial = "";
+        for (var k = ev.resultIndex; k < ev.results.length; k++) {
+          var t = ev.results[k][0].transcript;
+          if (ev.results[k].isFinal) final += t + " "; else parcial += t;
+        }
+        var dicho = (final + parcial).trim();
+        if (dicho) dicho = dicho.charAt(0).toUpperCase() + dicho.slice(1);
+        campo.value = (base ? base + " " : "") + dicho;
+        campo.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      rec.onerror = function (ev) {
+        if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
+          $("#form-status").textContent = "Para dictar, permita el uso del micrófono en su navegador.";
+        }
+      };
+      rec.onend = function () {
+        boton.classList.remove("grabando");
+        boton.querySelector("span").textContent = "Dictar con mi voz";
+        if (dictando && dictando.rec === rec) dictando = null;
+      };
+
+      dictando = { rec: rec, campo: campo };
+      boton.classList.add("grabando");
+      boton.querySelector("span").textContent = "Escuchando… toque para terminar";
+      campo.focus();
+      rec.start();
+    });
+  }
+
+  if (Reconocimiento) {
+    $$("textarea, #filial_otra", form).forEach(agregarMicrofono);
+  }
+
+  /* ---------- Confeti al terminar ---------- */
+  function confeti() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var lienzo = $("#confeti");
+    var ctx = lienzo.getContext("2d");
+    var dpr = window.devicePixelRatio || 1;
+    lienzo.width = innerWidth * dpr;
+    lienzo.height = innerHeight * dpr;
+    ctx.scale(dpr, dpr);
+    var colores = ["#008744", "#2bb673", "#e52521", "#d4af37", "#8ff0bd", "#ffffff"];
+    var piezas = [];
+    for (var n = 0; n < 180; n++) {
+      var desdeIzq = n % 2 === 0;
+      piezas.push({
+        x: desdeIzq ? -10 : innerWidth + 10,
+        y: innerHeight * (0.55 + Math.random() * 0.3),
+        vx: (desdeIzq ? 1 : -1) * (4 + Math.random() * 7),
+        vy: -(9 + Math.random() * 9),
+        w: 6 + Math.random() * 7,
+        h: 9 + Math.random() * 9,
+        r: Math.random() * Math.PI,
+        vr: -0.25 + Math.random() * 0.5,
+        c: colores[n % colores.length],
+        circulo: Math.random() < 0.3,
+      });
+    }
+    var inicio = performance.now();
+    (function cuadro(t) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      piezas.forEach(function (p) {
+        p.vy += 0.28;
+        p.vx *= 0.99;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.r += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.r);
+        ctx.fillStyle = p.c;
+        ctx.strokeStyle = "rgba(4, 73, 42, .15)";
+        if (p.circulo) {
+          ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        } else {
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.strokeRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        }
+        ctx.restore();
+      });
+      if (t - inicio < 5000) requestAnimationFrame(cuadro);
+      else ctx.clearRect(0, 0, innerWidth, innerHeight);
+    })(inicio);
+  }
 
   /* ---------- Accesibilidad: tamaño de letra y contraste ---------- */
   var root = document.documentElement;

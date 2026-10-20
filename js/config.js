@@ -7,6 +7,10 @@ window.ADEP_CONFIG = {
   // Si se deja vacío, las respuestas se guardan solo en este navegador (modo demostración).
   endpoint: "",
 
+  // Texto que se mezcla con la cédula antes de cifrarla (SHA-256). Cámbielo una sola vez
+  // antes de publicar la encuesta y no lo vuelva a cambiar, o no se detectarán repetidos.
+  sal: "ADEP-encuesta-servicio-2026",
+
   // Pregunta 1: filiales y núcleos agrupados por provincia
   // (según la integración de juntas directivas de filiales y núcleos 2023-2026).
   // Agregue o quite nombres aquí; la opción "Otra" siempre aparece al final.

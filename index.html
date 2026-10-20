@@ -43,19 +43,26 @@
           Esta encuesta tiene como objetivo conocer su opinión y nivel de satisfacción respecto a los
           programas y servicios que ofrece la Asociación de Educadores Pensionados ADEP.
         </p>
-        <div class="acciones">
-          <button type="button" class="btn btn-green btn-lg" id="start">
-            Comenzar encuesta <i class="fa-solid fa-arrow-right"></i>
-          </button>
-          <ul class="mini-datos">
-            <li><i class="fa-solid fa-list-check"></i> 14 preguntas</li>
-            <li><i class="fa-regular fa-clock"></i> Unos 5 minutos</li>
-            <li><i class="fa-solid fa-user-shield"></i> Anónima</li>
-          </ul>
+        <div class="ingreso">
+          <label class="ing-label" for="cedula"><i class="fa-solid fa-id-card"></i> Para comenzar, escriba su número de cédula</label>
+          <div class="ing-fila">
+            <input class="text" type="text" id="cedula" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Ej.: 102340567" aria-describedby="cedula-ayuda cedula-error">
+            <button type="button" class="btn btn-green btn-lg" id="start">
+              Comenzar encuesta <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+          <p class="ing-ayuda" id="cedula-ayuda">Sin guiones ni espacios. Solo sirve para que cada persona responda una vez; se guarda cifrada, así que su número no aparece en los resultados.</p>
+          <p class="ing-error" id="cedula-error" role="alert"></p>
         </div>
+        <ul class="mini-datos">
+          <li><i class="fa-solid fa-list-check"></i> 14 preguntas</li>
+          <li><i class="fa-regular fa-clock"></i> Unos 5 minutos</li>
+          <li><i class="fa-solid fa-user-shield"></i> Confidencial</li>
+          <li><i class="fa-solid fa-microphone"></i> Puede dictar sus respuestas</li>
+        </ul>
         <p class="nota">
-          Al enviar este formulario no se recopilarán automáticamente sus datos personales, como el nombre
-          o el correo electrónico, a menos que usted mismo los proporcione.
+          No se recopilarán automáticamente sus datos personales, como el nombre o el correo electrónico.
+          Su cédula se usa únicamente para evitar respuestas repetidas.
         </p>
       </div>
 
@@ -283,6 +290,7 @@
           <h2>¡Muchas gracias!</h2>
           <p>Sus respuestas fueron enviadas con éxito. Su opinión nos ayuda a seguir mejorando
             los programas y servicios para todas las personas asociadas.</p>
+          <p class="lema-final"><i class="fa-solid fa-heart"></i> Orgullosos de ser solidarios <i class="fa-solid fa-heart"></i></p>
           <button type="button" class="btn btn-sec" id="again"><i class="fa-solid fa-house"></i> Volver al inicio</button>
         </div>
       </section>
@@ -293,6 +301,8 @@
     <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
     <p class="small">No revele nunca su contraseña. No proporcione información personal o confidencial.</p>
   </footer>
+
+  <canvas id="confeti" aria-hidden="true"></canvas>
 
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>

@@ -457,6 +457,59 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 @keyframes latido { 0%, 100% { box-shadow: 0 0 0 0 rgba(0, 135, 68, .35); } 50% { box-shadow: 0 0 0 7px rgba(0, 135, 68, 0); } }
 @keyframes listo { 0%, 100% { box-shadow: 0 10px 20px -12px rgba(0, 135, 68, .9), 0 0 0 0 rgba(0, 135, 68, .45); } 50% { box-shadow: 0 10px 20px -12px rgba(0, 135, 68, .9), 0 0 0 9px rgba(0, 135, 68, 0); } }
 
+/* ---------- Ingreso con cédula ---------- */
+.ingreso {
+  margin-top: 1.6rem; padding: 1.2rem 1.25rem;
+  background: #fff; border: 1px solid var(--line); border-radius: 1.25rem;
+  box-shadow: var(--shadow-sm); max-width: 38rem;
+}
+.ing-label { display: flex; align-items: center; gap: .5rem; font-weight: 700; color: var(--g-deep); }
+.ing-label i { color: var(--g); }
+.ing-fila { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .6rem; }
+.ing-fila .text {
+  flex: 1 1 12rem; margin: 0; min-height: 60px;
+  font-size: 1.25rem; font-weight: 700; letter-spacing: .12em;
+}
+.ing-fila .text::placeholder { letter-spacing: normal; font-weight: 500; font-size: 1rem; }
+.ing-fila .text.mal { border-color: var(--r); background: #fff7f7; animation: tiembla .35s; }
+.ing-fila .btn { flex: 0 0 auto; }
+.ing-ayuda { margin: .6rem 0 0; font-size: .85rem; color: var(--ink-soft); }
+.ing-error { margin: .4rem 0 0; font-weight: 700; color: #b91c1c; }
+.ing-error:empty { display: none; }
+.mini-datos { margin-top: 1rem; }
+@keyframes tiembla { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* ---------- Botón de micrófono ---------- */
+.mic {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin-top: .6rem; min-height: 46px; padding: 0 1.1rem;
+  border: 2px solid color-mix(in srgb, var(--acc, var(--g)) 35%, #fff); border-radius: 999px;
+  background: #fff; color: var(--acc, var(--g-dark));
+  font: 700 .95rem 'Inter', sans-serif; cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.mic i {
+  display: grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: var(--acc, var(--g)); color: #fff; font-size: .85rem;
+}
+.mic:hover { background: var(--acc-soft, var(--g-soft)); }
+.mic.grabando { border-color: var(--r); color: var(--r); background: #fff5f5; }
+.mic.grabando i { background: var(--r); animation: escucha 1.2s ease-in-out infinite; }
+@keyframes escucha { 0%, 100% { box-shadow: 0 0 0 0 rgba(229, 37, 33, .5); } 50% { box-shadow: 0 0 0 9px rgba(229, 37, 33, 0); } }
+
+/* ---------- Final: frase y confeti ---------- */
+.lema-final {
+  display: inline-flex; align-items: center; gap: .6rem;
+  margin: 0 0 1.6rem !important; padding: .7rem 1.4rem; border-radius: 999px;
+  background: linear-gradient(120deg, var(--g-deep), var(--g));
+  color: #fff !important; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.25rem;
+  box-shadow: 0 14px 26px -16px var(--g-deep);
+  animation: rebote .7s .5s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+.lema-final i { color: #ff8a86; font-size: .95rem; animation: latir 1.4s ease-in-out infinite; }
+@keyframes latir { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+#confeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; }
+
 /* ---------- Alto contraste ---------- */
 html.hc body, html.hc .app-header, html.hc .card, html.hc .progreso, html.hc .app-footer,
 html.hc .opt > span, html.hc .scale, html.hc .text, html.hc .etiqueta, html.hc .valor { background: #fff !important; color: #000 !important; }
@@ -490,7 +543,8 @@ html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
   .portada-arte { max-width: 15rem; }
   .valor { font-size: .75rem; padding: .35rem .7rem; }
   .v1 { left: -10%; } .v2 { left: -12%; } .v3 { right: -14%; }
-  .acciones .btn { width: 100%; }
+  .ing-fila .btn { width: 100%; }
+  .lema-final { font-size: 1.05rem; padding: .6rem 1rem; }
   .pasos li { font-size: 0; }
   .card { padding: 1.2rem 1.05rem; }
   .sec-title { padding: 1rem; gap: .8rem; }
