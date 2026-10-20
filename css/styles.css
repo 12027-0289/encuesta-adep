@@ -218,6 +218,17 @@ main { flex: 1; width: 100%; max-width: 1160px; margin: 0 auto; padding: 2.5rem 
 }
 .text:focus { outline: none; background: #fff; border-color: var(--g); }
 
+/* Lista desplegable */
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: ""; position: absolute; right: 1.1rem; top: calc(50% + .35rem); width: .6rem; height: .6rem;
+  border-right: 2.5px solid var(--g); border-bottom: 2.5px solid var(--g);
+  transform: translateY(-75%) rotate(45deg); pointer-events: none;
+}
+select.text { appearance: none; -webkit-appearance: none; padding-right: 3rem; cursor: pointer; font-weight: 600; }
+select.text optgroup { font-weight: 800; color: var(--g-deep); }
+select.text option { font-weight: 500; color: var(--ink); }
+
 /* ---------- Opciones ---------- */
 .options { display: grid; gap: .7rem; margin-top: .8rem; }
 .cols-2 { grid-template-columns: repeat(2, 1fr); }

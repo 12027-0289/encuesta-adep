@@ -15,6 +15,34 @@
       .replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   }
 
+  var OTRA = "Otra (no aparece en la lista)";
+  var filialSel = $("#filial");
+  var filialOtra = $("#filial_otra");
+  Object.keys(cfg.filiales || {}).forEach(function (prov) {
+    var group = document.createElement("optgroup");
+    group.label = prov;
+    cfg.filiales[prov].forEach(function (f) {
+      var o = document.createElement("option");
+      o.value = f + " (" + prov + ")";
+      o.textContent = f;
+      group.appendChild(o);
+    });
+    filialSel.appendChild(group);
+  });
+  var otraOpt = document.createElement("option");
+  otraOpt.value = OTRA;
+  otraOpt.textContent = OTRA;
+  filialSel.appendChild(otraOpt);
+  function syncFilial() {
+    var otra = filialSel.value === OTRA;
+    filialOtra.hidden = !otra;
+    if (!otra) filialOtra.value = "";
+  }
+  filialSel.addEventListener("change", function () {
+    syncFilial();
+    if (!filialOtra.hidden) filialOtra.focus();
+  });
+
   var servWrap = $("#servicios-options");
   cfg.servicios.forEach(function (s) {
     var label = document.createElement("label");
@@ -118,6 +146,9 @@
         row.classList.toggle("missing", !rated);
         if (!rated) ok = false;
       });
+    } else if ($("select", q)) {
+      var sel = $("select", q);
+      ok = sel.value !== "" && (sel.value !== OTRA || filialOtra.value.trim() !== "");
     } else if ($(".text", q)) {
       ok = $(".text", q).value.trim() !== "";
     } else {
@@ -131,7 +162,7 @@
     var invalid = $$(".q[data-required]", steps[i]).filter(function (q) { return !validateQuestion(q); });
     if (invalid.length) {
       invalid[0].scrollIntoView({ behavior: "smooth", block: "center" });
-      var focusable = $("input, textarea", invalid[0]);
+      var focusable = $("select, input, textarea", invalid[0]);
       if (focusable) setTimeout(function () { focusable.focus({ preventScroll: true }); }, 400);
       $("#form-status").textContent = "Por favor complete las preguntas marcadas con *.";
       return false;
@@ -168,7 +199,7 @@
     var multi = function (n) { return fd.getAll(n).join(", "); };
     var data = {
       fecha: new Date().toISOString(),
-      filial: (fd.get("filial") || "").trim(),
+      filial: fd.get("filial") === OTRA ? "Otra: " + (fd.get("filial_otra") || "").trim() : (fd.get("filial") || ""),
       edad: fd.get("edad") || "",
       antiguedad: fd.get("antiguedad") || "",
       servicios_utilizados: multi("servicios"),
@@ -195,7 +226,7 @@
   function saveDraft() {
     try {
       var state = { step: current, values: {} };
-      $$("input, textarea", form).forEach(function (el) {
+      $$("select, input, textarea", form).forEach(function (el) {
         if (el.type === "radio" || el.type === "checkbox") {
           if (el.checked) (state.values[el.name] = state.values[el.name] || []).push(el.value);
         } else if (el.value) {
@@ -209,7 +240,7 @@
     try {
       var state = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
       if (!state) return 0;
-      $$("input, textarea", form).forEach(function (el) {
+      $$("select, input, textarea", form).forEach(function (el) {
         var v = state.values[el.name];
         if (v === undefined) return;
         if (el.type === "radio" || el.type === "checkbox") {
@@ -220,6 +251,7 @@
         }
       });
       syncSatisfaction();
+      syncFilial();
       return Math.min(state.step || 0, steps.length - 1);
     } catch (e) { return 0; }
   }
@@ -277,6 +309,7 @@
   });
   $("#again").addEventListener("click", function () {
     form.reset();
+    syncFilial();
     $$(".m-row").forEach(function (r) { r.classList.remove("rated", "missing"); r.hidden = false; });
     $$(".q").forEach(function (q) { q.classList.remove("invalid"); });
     $("#thanks").hidden = true;

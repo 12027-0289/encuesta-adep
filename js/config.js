@@ -7,6 +7,50 @@ window.ADEP_CONFIG = {
   // Si se deja vacío, las respuestas se guardan solo en este navegador (modo demostración).
   endpoint: "",
 
+  // Pregunta 1: filiales y núcleos agrupados por provincia (según las fichas de adepcr.org).
+  // Agregue o quite nombres aquí; la opción "Otra" siempre aparece al final.
+  filiales: {
+    "San José": [
+      "Filial Aserrí",
+      "Filial Coronado",
+      "Filial Curridabat",
+      "Filial Desamparados",
+      "Filial Escazú",
+      "Filial Goicoechea",
+      "Filial Moravia",
+      "Filial Pérez Zeledón",
+      "Filial San Francisco",
+      "Filial Santa Ana",
+    ],
+    "Alajuela": [
+      "Filial Alajuela",
+      "Filial Orotina – San Mateo",
+      "Filial San Ramón",
+      "Núcleo Alfaro Ruiz",
+      "Núcleo Poás",
+    ],
+    "Heredia": [
+      "Filial Heredia",
+      "Filial San Pablo",
+      "Filial San Rafael",
+      "Núcleo Belén (Flores)",
+    ],
+    "Cartago": [
+      "Filial Cartago",
+      "Núcleo La Suiza (Turrialba)",
+    ],
+    "Guanacaste": [
+      "Filial Cañas",
+    ],
+    "Puntarenas": [
+      "Núcleo Miramar (Montes de Oro)",
+    ],
+    "Limón": [
+      "Núcleo Batán (Matina)",
+      "Núcleo Sarapiquí (Pococí)",
+    ],
+  },
+
   // Opciones de la pregunta 4 y filas de la pregunta 5.
   servicios: [
     "Revista ECOS",

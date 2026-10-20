@@ -95,7 +95,12 @@
 
             <div class="q card" data-required>
               <label class="q-title" for="filial"><span class="num">1</span> Filial o Núcleo al que pertenece <b class="req">*</b></label>
-              <input class="text" type="text" id="filial" name="filial" placeholder="Escriba su respuesta" autocomplete="off">
+              <div class="select-wrap">
+                <select class="text" id="filial" name="filial">
+                  <option value="">Seleccione su filial o núcleo…</option>
+                </select>
+              </div>
+              <input class="text" type="text" id="filial_otra" name="filial_otra" placeholder="Escriba el nombre de su filial o núcleo" autocomplete="off" hidden>
               <p class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> Por favor indique su filial o núcleo.</p>
             </div>
 
