@@ -19,7 +19,7 @@ index.html                 Página principal
 css/styles.css             Estilos y paleta de colores (variables en :root)
 js/config.js               Servicios, aspectos a calificar y URL de envío
 js/app.js                  Lógica del formulario
-assets/                    Logo y favicon
+assets/                    Logo oficial y favicon
 google-apps-script/Code.gs Script para recibir respuestas en Google Sheets
 ```
 
@@ -42,7 +42,7 @@ endpoint: "https://script.google.com/macros/s/XXXXXXXX/exec",
 
 - **Colores:** variables `--adep-*` (verde oscuro, verde, verde claro, rojo y blanco) al inicio de `css/styles.css`.
 - **Servicios (preguntas 4 y 5) y aspectos (pregunta 7):** listas en `js/config.js`.
-- **Logo:** reemplace `assets/logo.svg` por el logo oficial de ADEP.
+- **Logo:** `assets/logo-adep.png` (logo oficial, recortado en círculo) y `assets/favicon.png`.
 
 ## Publicar en GitHub Pages
 
