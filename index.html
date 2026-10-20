@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuesta de Servicio | ADEP</title>
+  <meta name="description" content="Encuesta de satisfacción de la Asociación de Educadores Pensionados (ADEP).">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="" width="44" height="44">
+      <div>
+        <strong>ADEP</strong>
+        <span>Asociación de Educadores Pensionados</span>
+      </div>
+    </div>
+    <div class="font-tools" role="group" aria-label="Tamaño del texto">
+      <button type="button" data-font="-1" aria-label="Reducir texto">A−</button>
+      <button type="button" data-font="1" aria-label="Aumentar texto">A+</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Portada -->
+    <section class="hero" id="intro">
+      <div class="hero-bg" aria-hidden="true">
+        <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+      </div>
+      <div class="hero-content">
+        <p class="eyebrow">Encuesta de servicio a la persona asociada</p>
+        <h1>¡Su opinión es <em>muy importante</em> para nosotros!</h1>
+        <p class="lead">
+          Esta encuesta tiene como objetivo conocer su opinión y nivel de satisfacción
+          respecto a los programas y servicios que ofrece la Asociación de Educadores Pensionados ADEP.
+        </p>
+        <ul class="hero-facts">
+          <li><span>14</span> preguntas</li>
+          <li><span>≈5</span> minutos</li>
+          <li><span>100%</span> anónima</li>
+        </ul>
+        <button class="btn btn-primary btn-lg" id="start">Comenzar encuesta <span aria-hidden="true">→</span></button>
+        <p class="privacy">
+          Al enviar este formulario no se recopilarán automáticamente sus datos personales,
+          como el nombre o el correo electrónico, a menos que usted mismo los proporcione.
+        </p>
+      </div>
+    </section>
+
+    <!-- Formulario -->
+    <section class="survey" id="survey" hidden>
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span id="step-label">Sección 1 de 5</span>
+          <span id="step-percent">0%</span>
+        </div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progreso de la encuesta">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <ol class="steps-dots" id="steps-dots" aria-hidden="true"></ol>
+      </div>
+
+      <form id="form" novalidate>
+        <!-- Paso 1 -->
+        <fieldset class="step" data-title="Sobre usted">
+          <legend class="step-title"><span class="step-icon">👤</span> Sobre usted</legend>
+
+          <div class="q card" data-required>
+            <label class="q-title" for="filial"><span class="num">1</span> Filial o Núcleo al que pertenece <b class="req">*</b></label>
+            <input class="text" type="text" id="filial" name="filial" placeholder="Escriba su respuesta" autocomplete="off">
+            <p class="error-msg">Por favor indique su filial o núcleo.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">2</span> Edad <b class="req">*</b></p>
+            <div class="options cols-3" role="radiogroup">
+              <label class="opt"><input type="radio" name="edad" value="55-64 años"><span>55 – 64 años</span></label>
+              <label class="opt"><input type="radio" name="edad" value="65-74 años"><span>65 – 74 años</span></label>
+              <label class="opt"><input type="radio" name="edad" value="75 o más"><span>75 o más</span></label>
+            </div>
+            <p class="error-msg">Seleccione una opción.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">3</span> Años de pertenecer a la ADEP <b class="req">*</b></p>
+            <div class="options cols-2" role="radiogroup">
+              <label class="opt"><input type="radio" name="antiguedad" value="Menos de 1 año"><span>Menos de 1 año</span></label>
+              <label class="opt"><input type="radio" name="antiguedad" value="De 1 a 5 años"><span>De 1 a 5 años</span></label>
+              <label class="opt"><input type="radio" name="antiguedad" value="De 6 a 10 años"><span>De 6 a 10 años</span></label>
+              <label class="opt"><input type="radio" name="antiguedad" value="Más de 10 años"><span>Más de 10 años</span></label>
+            </div>
+            <p class="error-msg">Seleccione una opción.</p>
+          </div>
+        </fieldset>
+
+        <!-- Paso 2 -->
+        <fieldset class="step" data-title="Servicios">
+          <legend class="step-title"><span class="step-icon">🤝</span> Servicios</legend>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">4</span> ¿Cuáles de los siguientes servicios ha utilizado? <b class="req">*</b></p>
+            <p class="hint">Puede seleccionar varias opciones.</p>
+            <div class="options cols-2 checks" id="servicios-options"></div>
+            <p class="error-msg">Seleccione al menos un servicio.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">5</span> Nivel de satisfacción de los servicios de ADEP <b class="req">*</b></p>
+            <p class="hint">Siendo 1 la calificación más baja y 5 la más alta.</p>
+            <div class="matrix" id="satisfaccion-matrix"></div>
+            <p class="error-msg">Califique todos los servicios.</p>
+          </div>
+
+          <div class="q card">
+            <label class="q-title" for="temas_ecos"><span class="num">6</span> ¿Qué otros temas le gustaría encontrar como parte del contenido de la Revista ECOS de ADEP?</label>
+            <textarea class="text" id="temas_ecos" name="temas_ecos" rows="3" placeholder="Escriba su respuesta"></textarea>
+          </div>
+        </fieldset>
+
+        <!-- Paso 3 -->
+        <fieldset class="step" data-title="Su experiencia">
+          <legend class="step-title"><span class="step-icon">⭐</span> Su experiencia</legend>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">7</span> ¿Cómo califica los siguientes aspectos de ADEP? <b class="req">*</b></p>
+            <p class="hint">Siendo 1 la calificación más baja y 5 la más alta.</p>
+            <div class="matrix" id="aspectos-matrix"></div>
+            <p class="error-msg">Califique todos los aspectos.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">8</span> ¿Considera que ADEP mejora su bienestar y calidad de vida? <b class="req">*</b></p>
+            <div class="options cols-4 emoji" role="radiogroup">
+              <label class="opt"><input type="radio" name="bienestar" value="Mucho"><span><i aria-hidden="true">😄</i>Mucho</span></label>
+              <label class="opt"><input type="radio" name="bienestar" value="Algo"><span><i aria-hidden="true">🙂</i>Algo</span></label>
+              <label class="opt"><input type="radio" name="bienestar" value="Poco"><span><i aria-hidden="true">😐</i>Poco</span></label>
+              <label class="opt"><input type="radio" name="bienestar" value="Nada"><span><i aria-hidden="true">🙁</i>Nada</span></label>
+            </div>
+            <p class="error-msg">Seleccione una opción.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">9</span> ¿Recomendaría usted a la ADEP a otras personas trabajadoras de la Educación? <b class="req">*</b></p>
+            <div class="options cols-3 emoji" role="radiogroup">
+              <label class="opt"><input type="radio" name="recomendaria" value="Sí"><span><i aria-hidden="true">👍</i>Sí</span></label>
+              <label class="opt"><input type="radio" name="recomendaria" value="No"><span><i aria-hidden="true">👎</i>No</span></label>
+              <label class="opt"><input type="radio" name="recomendaria" value="No estoy seguro(a)"><span><i aria-hidden="true">🤔</i>No estoy seguro(a)</span></label>
+            </div>
+            <p class="error-msg">Seleccione una opción.</p>
+          </div>
+        </fieldset>
+
+        <!-- Paso 4 -->
+        <fieldset class="step" data-title="Comunicación">
+          <legend class="step-title"><span class="step-icon">📣</span> Comunicación</legend>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">10</span> ¿Cuáles de los siguientes canales de comunicación de la ADEP utiliza usted con mayor frecuencia? <b class="req">*</b></p>
+            <p class="hint">Puede seleccionar varias opciones.</p>
+            <div class="options cols-3 checks emoji">
+              <label class="opt"><input type="checkbox" name="canales" value="Central Telefónica"><span><i aria-hidden="true">☎️</i>Central Telefónica</span></label>
+              <label class="opt"><input type="checkbox" name="canales" value="Correo Electrónico"><span><i aria-hidden="true">✉️</i>Correo Electrónico</span></label>
+              <label class="opt"><input type="checkbox" name="canales" value="WhatsApp"><span><i aria-hidden="true">💬</i>WhatsApp</span></label>
+            </div>
+            <p class="error-msg">Seleccione al menos una opción.</p>
+          </div>
+
+          <div class="q card" data-required>
+            <p class="q-title"><span class="num">11</span> ¿Cuáles de las siguientes redes sociales utiliza usted con mayor frecuencia? <b class="req">*</b></p>
+            <p class="hint">Puede seleccionar varias opciones.</p>
+            <div class="options cols-4 checks social">
+              <label class="opt fb"><input type="checkbox" name="redes" value="Facebook"><span>Facebook</span></label>
+              <label class="opt ig"><input type="checkbox" name="redes" value="Instagram"><span>Instagram</span></label>
+              <label class="opt tt"><input type="checkbox" name="redes" value="TikTok"><span>TikTok</span></label>
+              <label class="opt yt"><input type="checkbox" name="redes" value="YouTube"><span>YouTube</span></label>
+            </div>
+            <p class="error-msg">Seleccione al menos una opción.</p>
+          </div>
+        </fieldset>
+
+        <!-- Paso 5 -->
+        <fieldset class="step" data-title="Sus ideas">
+          <legend class="step-title"><span class="step-icon">💡</span> Sus ideas</legend>
+
+          <div class="q card">
+            <label class="q-title" for="fortalecer"><span class="num">12</span> ¿Qué servicios considera que debieran fortalecerse en ADEP?</label>
+            <textarea class="text" id="fortalecer" name="fortalecer" rows="3" placeholder="Escriba su respuesta"></textarea>
+          </div>
+
+          <div class="q card">
+            <label class="q-title" for="nuevos_beneficios"><span class="num">13</span> ¿Qué nuevos beneficios le gustaría que ADEP ofreciera para atender sus necesidades?</label>
+            <textarea class="text" id="nuevos_beneficios" name="nuevos_beneficios" rows="3" placeholder="Escriba su respuesta"></textarea>
+          </div>
+
+          <div class="q card">
+            <label class="q-title" for="recomendacion"><span class="num">14</span> ¿Qué recomendación nos brindaría para mejorar nuestros servicios?</label>
+            <textarea class="text" id="recomendacion" name="recomendacion" rows="3" placeholder="Escriba su respuesta"></textarea>
+          </div>
+        </fieldset>
+
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" id="prev">← Anterior</button>
+          <button type="button" class="btn btn-primary" id="next">Siguiente →</button>
+          <button type="submit" class="btn btn-accent" id="submit" hidden>Enviar encuesta ✓</button>
+        </div>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Gracias -->
+    <section class="thanks" id="thanks" hidden tabindex="-1">
+      <div class="thanks-card">
+        <div class="check" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M14 27l8 8 16-17"/></svg>
+        </div>
+        <h2>¡Muchas gracias!</h2>
+        <p>Sus respuestas fueron enviadas con éxito. Su opinión nos ayuda a seguir mejorando
+          los programas y servicios para todas las personas asociadas.</p>
+        <button class="btn btn-ghost" id="again">Volver al inicio</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
+    <p class="small">No revele nunca su contraseña. No proporcione información personal o confidencial.</p>
+  </footer>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
