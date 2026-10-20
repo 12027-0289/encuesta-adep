@@ -502,17 +502,11 @@
         return;
       }
       DRAFT_KEY = "adep-encuesta-borrador-" + idPersona.slice(0, 16);
-      var ov = $("#bienvenida");
-      ov.hidden = false;
-      setTimeout(function () {
-        ov.classList.add("sale");
-        $("#intro").hidden = true;
-        $("#survey").hidden = false;
-        var paso = loadDraft();
-        refreshAll();
-        showStep(paso);
-        setTimeout(function () { ov.hidden = true; ov.classList.remove("sale"); }, 450);
-      }, 1700);
+      $("#intro").hidden = true;
+      $("#survey").hidden = false;
+      var paso = loadDraft();
+      refreshAll();
+      showStep(paso);
     }).catch(function () {
       errorCedula("No se pudo verificar la cédula. Revise su conexión e intente de nuevo.");
     }).finally(function () {
@@ -734,31 +728,6 @@
     navigator.share({ files: [archivo], title: "Encuesta ADEP", text: "¡Participé en la Encuesta de Servicio de la ADEP! Orgullosos de ser solidarios 💚" })
       .catch(function () { /* la persona canceló */ });
   });
-
-  /* ---------- Saludo según la hora ---------- */
-  (function () {
-    var h = new Date().getHours();
-    var t = h >= 5 && h < 12 ? ["¡Buenos días!", "fa-sun"] : h >= 12 && h < 19 ? ["¡Buenas tardes!", "fa-cloud-sun"] : ["¡Buenas noches!", "fa-moon"];
-    $("#saludo-txt").textContent = t[0];
-    $("#saludo-ico").innerHTML = '<i class="fa-solid ' + t[1] + '"></i>';
-  })();
-
-  /* ---------- Instalar como aplicación ---------- */
-  var instalacion = null;
-  window.addEventListener("beforeinstallprompt", function (e) {
-    e.preventDefault();
-    instalacion = e;
-    $("#instalar").hidden = false;
-  });
-  $("#instalar").addEventListener("click", function () {
-    if (!instalacion) return;
-    instalacion.prompt();
-    instalacion.userChoice.finally(function () { instalacion = null; $("#instalar").hidden = true; });
-  });
-  window.addEventListener("appinstalled", function () { $("#instalar").hidden = true; aviso("¡Listo! La encuesta quedó instalada en su equipo 📲"); });
-  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
-    navigator.serviceWorker.register("sw.js").catch(function () { /* nada */ });
-  }
 
   /* ---------- Confeti al terminar ---------- */
   function confeti() {

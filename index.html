@@ -7,10 +7,6 @@
   <meta name="description" content="Encuesta de satisfacción de la Asociación de Educadores Pensionados (ADEP).">
   <meta name="theme-color" content="#006b35">
   <link rel="icon" href="assets/favicon.png" type="image/png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Encuesta ADEP">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +15,6 @@
 </head>
 <body>
   <a class="skip" href="#main">Saltar al contenido</a>
-  <div class="hojas" aria-hidden="true"><span class="hoja h1"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h2"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h3"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h4"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h5"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h6"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h7"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h8"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span></div>
 
   <header class="app-header">
     <div class="head-in">
@@ -30,7 +25,6 @@
           <span>Encuesta de servicio</span>
         </div>
       </div>
-      <button type="button" class="instalar" id="instalar" hidden><i class="fa-solid fa-mobile-screen-button"></i><span>Instalar app</span></button>
       <div id="a11y-bar" role="group" aria-label="Accesibilidad">
         <button type="button" id="a11y-menos" aria-label="Letra más pequeña">A−</button>
         <button type="button" id="a11y-mas" aria-label="Letra más grande">A+</button>
@@ -43,7 +37,6 @@
     <!-- Portada -->
     <section id="intro" class="portada">
       <div class="portada-txt">
-        <p class="saludo" id="saludo"><span class="saludo-ico" id="saludo-ico"></span><span id="saludo-txt">¡Hola!</span></p>
         <span class="etiqueta"><span class="punto"></span> Encuesta de servicio a la persona asociada</span>
         <h1>¡Su opinión es <span class="resalta">muy importante</span> para nosotros!</h1>
         <p class="lead">
@@ -74,7 +67,6 @@
       </div>
 
       <div class="portada-arte" aria-hidden="true">
-        <div class="foto-fondo"></div>
         <div class="aro aro-1"></div>
         <div class="aro aro-2"></div>
         <img src="assets/logo-adep.png" alt="" class="logo-grande" width="220" height="220">
@@ -344,14 +336,6 @@
 
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
-  <div class="bienvenida-ov" id="bienvenida" hidden>
-    <div class="bv-card">
-      <img src="assets/logo-adep.png" alt="" width="96" height="96">
-      <h2>¡Bienvenido(a)!</h2>
-      <p>Gracias por tomarse este tiempo. Vamos a comenzar…</p>
-      <span class="bv-carga"><span></span></span>
-    </div>
-  </div>
 
   <canvas id="confeti" aria-hidden="true"></canvas>
 

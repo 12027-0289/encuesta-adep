@@ -517,75 +517,6 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
    DETALLES BONITOS
    ========================================================================== */
 
-/* Hojas decorativas que se mueven despacio en el fondo */
-.hojas { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.hoja { position: absolute; transform: rotate(var(--rot)); animation: deriva 30s ease-in-out infinite alternate; }
-.hoja svg { width: 100%; height: 100%; fill: var(--g); }
-.hoja .nervio { fill: none; stroke: #fff; stroke-width: 1.5; opacity: .6; }
-.h2 svg, .h6 svg { fill: var(--gold); }
-.h5 svg { fill: var(--r); }
-.h1 { left: 6%; top: 8%; width: 70px; height: 70px; --rot: -20deg; animation-duration: 28s; opacity: 0.1; }
-.h2 { left: 82%; top: 14%; width: 54px; height: 54px; --rot: 35deg; animation-duration: 34s; opacity: 0.08; }
-.h3 { left: 14%; top: 62%; width: 46px; height: 46px; --rot: 60deg; animation-duration: 30s; opacity: 0.09; }
-.h4 { left: 90%; top: 70%; width: 80px; height: 80px; --rot: -40deg; animation-duration: 38s; opacity: 0.07; }
-.h5 { left: 48%; top: 90%; width: 40px; height: 40px; --rot: 15deg; animation-duration: 26s; opacity: 0.08; }
-.h6 { left: 68%; top: 40%; width: 34px; height: 34px; --rot: -70deg; animation-duration: 32s; opacity: 0.06; }
-.h7 { left: 30%; top: 30%; width: 30px; height: 30px; --rot: 80deg; animation-duration: 36s; opacity: 0.05; }
-.h8 { left: 58%; top: 4%; width: 44px; height: 44px; --rot: -10deg; animation-duration: 30s; opacity: 0.07; }
-@keyframes deriva {
-  0% { transform: rotate(var(--rot)) translate(0, 0); }
-  100% { transform: rotate(calc(var(--rot) + 25deg)) translate(30px, 40px); }
-}
-
-/* Saludo según la hora */
-.saludo { display: flex; align-items: center; gap: .55rem; margin: 0 0 .8rem; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; color: var(--head); animation: sube .5s ease-out both; }
-.saludo-ico { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 50%; background: #fdf3d3; color: #c99a1e; font-size: 1.05rem; animation: gira-suave 6s ease-in-out infinite alternate; }
-@keyframes gira-suave { to { transform: rotate(18deg) scale(1.08); } }
-
-/* Foto de la sede detrás del logo */
-.foto-fondo {
-  position: absolute; inset: -5% -3%; border-radius: 2.5rem;
-  background:
-    linear-gradient(180deg, rgba(245, 249, 246, .15), rgba(4, 73, 42, .35)),
-    url('../assets/foto-adep.jpg') center 60% / cover no-repeat;
-  box-shadow: var(--shadow);
-  animation: acerca 20s ease-in-out infinite alternate;
-}
-@keyframes acerca { to { background-size: auto, 112%; } }
-.portada-arte .aro-1 { inset: 4%; }
-
-/* Botón instalar */
-.instalar {
-  display: inline-flex; align-items: center; gap: .45rem; margin-left: auto; margin-right: .6rem;
-  min-height: 40px; padding: 0 1rem; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--g); color: #fff; font: 700 15px 'Inter', sans-serif;
-  animation: latido 2.4s ease-in-out infinite;
-}
-
-/* Bienvenida tras la cédula */
-.bienvenida-ov {
-  position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 1rem;
-  background:
-    linear-gradient(160deg, rgba(4, 73, 42, .55), rgba(0, 107, 53, .35)),
-    url('../assets/foto-adep-difuminada.jpg') center / cover no-repeat;
-  animation: aparece .3s ease both;
-}
-.bienvenida-ov.sale { animation: desaparece .45s ease forwards; }
-.bv-card {
-  width: min(26rem, 100%); text-align: center; padding: 2.2rem 1.8rem 1.8rem;
-  background: var(--surface); border-radius: 1.75rem; border-top: 6px solid var(--g);
-  box-shadow: 0 30px 60px -25px rgba(0, 0, 0, .5);
-  animation: rebote .6s cubic-bezier(.3, 1.5, .5, 1) both;
-}
-.bv-card img { border-radius: 50%; animation: gira-suave 1.5s ease-in-out infinite alternate; }
-.bv-card h2 { margin: .8rem 0 .3rem; font-size: 2rem; font-weight: 800; color: var(--head); }
-.bv-card p { margin: 0 0 1.2rem; color: var(--ink-soft); }
-.bv-carga { display: block; height: 6px; border-radius: 999px; background: var(--g-soft); overflow: hidden; }
-.bv-carga span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--g), #2bb673); animation: carga 1.6s ease-in-out forwards; }
-@keyframes carga { to { width: 100%; } }
-@keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
-@keyframes desaparece { to { opacity: 0; visibility: hidden; } }
-
 /* Aviso de ánimo entre secciones */
 .aviso {
   position: fixed; left: 50%; bottom: 1.5rem; z-index: 70;
@@ -685,7 +616,7 @@ html.hc .opt input:checked + span .ico { color: #fff; }
 html.hc .scale input:checked + span { background: #000; color: #fff; }
 html.hc .lead, html.hc .hint, html.hc .nota, html.hc .mini-datos, html.hc .m-label, html.hc .pasos li, html.hc .lateral-nota { color: #000 !important; }
 html.hc .portada h1, html.hc .sec-title, html.hc .resalta { color: #003d1f !important; background: none; }
-html.hc .hojas, html.hc .foto-fondo, html.hc .aro, html.hc .app-header::after, html.hc .sec-title::before, html.hc .sec-title::after { display: none; }
+html.hc .aro, html.hc .app-header::after, html.hc .sec-title::before, html.hc .sec-title::after { display: none; }
 html.hc .sec-title { background: #04331d !important; }
 html.hc .opt > span::before { background-color: #fff; }
 html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
@@ -712,7 +643,6 @@ html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
   .ing-fila .btn { width: 100%; }
   .leer span { display: none; }
   .leer { padding: 0; width: 38px; justify-content: center; }
-  .instalar span { display: none; }
   .scale span.estrella { width: 2.6rem; }
   .estrella svg { width: 1.85rem; height: 1.85rem; }
   .rp-sec header { flex-wrap: wrap; }
