@@ -642,7 +642,7 @@
   function prepararFinal() {
     var enlace = location.href.split("#")[0].split("?")[0];
     var msg = "¡Hola! 👋 Ya respondí la Encuesta de Servicio de la ADEP. Su opinión también es muy importante. " +
-      "Puede responderla aquí: " + enlace + " 💚 Orgullosos de ser solidarios.";
+      "Puede responderla aquí: " + enlace + " 💚 Orgullosos de ser personas solidarias.";
     $("#invitar-wa").href = "https://wa.me/?text=" + encodeURIComponent(msg);
   }
 
