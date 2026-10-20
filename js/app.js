@@ -85,7 +85,7 @@
     var pct = Math.round((current / steps.length) * 100);
     $("#progress-bar").style.width = pct + "%";
     $(".barra").setAttribute("aria-valuenow", pct);
-    $("#step-percent").textContent = pct + "% completado";
+    $("#step-percent").textContent = pct + "%";
     $("#step-label").textContent = "Sección " + (current + 1) + " de " + steps.length + " · " + steps[current].dataset.title;
     $$("li", dots).forEach(function (li, i) {
       li.classList.toggle("done", i < current);

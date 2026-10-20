@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Encuesta de Servicio | ADEP</title>
   <meta name="description" content="Encuesta de satisfacción de la Asociación de Educadores Pensionados (ADEP).">
-  <meta name="theme-color" content="#04492a">
+  <meta name="theme-color" content="#006b35">
   <link rel="icon" href="assets/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,69 +16,77 @@
 <body>
   <a class="skip" href="#main">Saltar al contenido</a>
 
-  <div class="app-canvas">
-    <header class="app-header">
-      <div class="valores">Comprensión • Fraternidad • Cooperación</div>
-      <div class="head-main">
-        <img class="logo" src="assets/logo-adep.png" alt="Logo de ADEP" width="64" height="64">
+  <header class="app-header">
+    <div class="head-in">
+      <div class="marca">
+        <img class="logo" src="assets/logo-adep.png" alt="Logo de ADEP" width="48" height="48">
         <div>
-          <h1>ADEP <span>Encuesta</span></h1>
-          <p>Asociación de Educadores Pensionados</p>
+          <strong>ADEP</strong>
+          <span>Encuesta de servicio</span>
         </div>
       </div>
-    </header>
+      <div id="a11y-bar" role="group" aria-label="Accesibilidad">
+        <button type="button" id="a11y-menos" aria-label="Letra más pequeña">A−</button>
+        <button type="button" id="a11y-mas" aria-label="Letra más grande">A+</button>
+        <button type="button" id="a11y-hc" aria-pressed="false" aria-label="Alto contraste"><i class="fa-solid fa-circle-half-stroke"></i><span>Contraste</span></button>
+      </div>
+    </div>
+  </header>
 
-    <main id="main">
-      <!-- Portada -->
-      <section id="intro">
-        <div class="bienvenida">
-          <div class="bv-txt">
-            <span class="bv-fecha"><i class="fa-solid fa-clipboard-list"></i> Encuesta de servicio a la persona asociada</span>
-            <h2 class="bv-hola">¡Su opinión es muy importante para nosotros!</h2>
-            <p class="bv-det">
-              Esta encuesta tiene como objetivo conocer su opinión y nivel de satisfacción respecto a los
-              programas y servicios que ofrece la Asociación de Educadores Pensionados ADEP.
-            </p>
-          </div>
-          <button type="button" class="bv-btn" id="start">
+  <main id="main">
+    <!-- Portada -->
+    <section id="intro" class="portada">
+      <div class="portada-txt">
+        <span class="etiqueta"><span class="punto"></span> Encuesta de servicio a la persona asociada</span>
+        <h1>¡Su opinión es <span class="resalta">muy importante</span> para nosotros!</h1>
+        <p class="lead">
+          Esta encuesta tiene como objetivo conocer su opinión y nivel de satisfacción respecto a los
+          programas y servicios que ofrece la Asociación de Educadores Pensionados ADEP.
+        </p>
+        <div class="acciones">
+          <button type="button" class="btn btn-green btn-lg" id="start">
             Comenzar encuesta <i class="fa-solid fa-arrow-right"></i>
           </button>
+          <ul class="mini-datos">
+            <li><i class="fa-solid fa-list-check"></i> 14 preguntas</li>
+            <li><i class="fa-regular fa-clock"></i> Unos 5 minutos</li>
+            <li><i class="fa-solid fa-user-shield"></i> Anónima</li>
+          </ul>
         </div>
-
-        <div class="datos">
-          <div class="dato">
-            <span class="dato-ico"><i class="fa-solid fa-list-check"></i></span>
-            <div><strong>14 preguntas</strong><span>En 5 secciones cortas</span></div>
-          </div>
-          <div class="dato">
-            <span class="dato-ico"><i class="fa-regular fa-clock"></i></span>
-            <div><strong>Unos 5 minutos</strong><span>Puede continuar luego</span></div>
-          </div>
-          <div class="dato">
-            <span class="dato-ico"><i class="fa-solid fa-user-shield"></i></span>
-            <div><strong>Anónima</strong><span>No pedimos su nombre</span></div>
-          </div>
-        </div>
-
         <p class="nota">
-          <i class="fa-solid fa-circle-info"></i>
           Al enviar este formulario no se recopilarán automáticamente sus datos personales, como el nombre
           o el correo electrónico, a menos que usted mismo los proporcione.
         </p>
-      </section>
+      </div>
+
+      <div class="portada-arte" aria-hidden="true">
+        <div class="aro aro-1"></div>
+        <div class="aro aro-2"></div>
+        <img src="assets/logo-adep.png" alt="" class="logo-grande" width="220" height="220">
+        <span class="valor v1"><i class="fa-solid fa-heart"></i> Comprensión</span>
+        <span class="valor v2"><i class="fa-solid fa-people-group"></i> Fraternidad</span>
+        <span class="valor v3"><i class="fa-solid fa-handshake"></i> Cooperación</span>
+      </div>
+    </section>
 
       <!-- Formulario -->
-      <section id="survey" hidden>
-        <div class="progreso">
-          <div class="progreso-info">
-            <span id="step-label">Sección 1 de 5</span>
-            <span id="step-percent">0% completado</span>
+      <section id="survey" class="encuesta" hidden>
+        <aside class="lateral">
+          <div class="progreso">
+            <p class="progreso-titulo">Su avance</p>
+            <div class="progreso-info">
+              <span id="step-label">Sección 1 de 5</span>
+              <span id="step-percent">0%</span>
+            </div>
+            <div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progreso de la encuesta">
+              <div class="barra-fill" id="progress-bar"></div>
+            </div>
+            <ol class="pasos" id="steps-dots" aria-hidden="true"></ol>
           </div>
-          <div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progreso de la encuesta">
-            <div class="barra-fill" id="progress-bar"></div>
-          </div>
-          <ol class="pasos" id="steps-dots" aria-hidden="true"></ol>
-        </div>
+          <p class="lateral-nota"><i class="fa-solid fa-floppy-disk"></i> Su avance se guarda automáticamente en este equipo.</p>
+        </aside>
+
+        <div class="contenido">
 
         <form id="form" novalidate>
           <!-- Paso 1 -->
@@ -225,12 +233,13 @@
           </div>
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
         </form>
+        </div>
       </section>
 
       <!-- Gracias -->
       <section id="thanks" hidden tabindex="-1">
         <div class="gracias card">
-          <span class="gracias-ico"><i class="fa-solid fa-check"></i></span>
+          <span class="gracias-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
           <h2>¡Muchas gracias!</h2>
           <p>Sus respuestas fueron enviadas con éxito. Su opinión nos ayuda a seguir mejorando
             los programas y servicios para todas las personas asociadas.</p>
@@ -239,17 +248,11 @@
       </section>
     </main>
 
-    <footer class="app-footer">
-      <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
-      <p class="small">No revele nunca su contraseña. No proporcione información personal o confidencial.</p>
-    </footer>
-  </div>
-
-  <div id="a11y-bar" role="group" aria-label="Accesibilidad">
-    <button type="button" id="a11y-menos" aria-label="Letra más pequeña">A−</button>
-    <button type="button" id="a11y-mas" aria-label="Letra más grande">A+</button>
-    <button type="button" id="a11y-hc" aria-pressed="false"><i class="fa-solid fa-circle-half-stroke"></i> Contraste</button>
-  </div>
+  <footer class="app-footer">
+    <p class="lema">Comprensión · Fraternidad · Cooperación</p>
+    <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
+    <p class="small">No revele nunca su contraseña. No proporcione información personal o confidencial.</p>
+  </footer>
 
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
