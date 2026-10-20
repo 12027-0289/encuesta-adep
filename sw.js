@@ -1,6 +1,6 @@
 /* Service worker: permite instalar la encuesta y abrirla aunque falle la conexión.
    Suba el número de VERSION cada vez que publique cambios. */
-var VERSION = "encuesta-adep-v1";
+var VERSION = "encuesta-adep-v2";
 var ARCHIVOS = [
   "./",
   "index.html",
