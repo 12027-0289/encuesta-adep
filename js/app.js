@@ -56,7 +56,7 @@
   function buildMatrix(container, prefix, items) {
     var legend = document.createElement("div");
     legend.className = "scale-legend";
-    legend.innerHTML = "<span>1 = Muy bajo</span><span>5 = Excelente</span>";
+    legend.innerHTML = "<span>1 estrella = Muy malo</span><span>5 estrellas = Excelente</span>";
     container.appendChild(legend);
     items.forEach(function (item) {
       var name = prefix + "_" + slug(item);
@@ -75,13 +75,19 @@
       for (var v = 1; v <= 5; v++) {
         var l = document.createElement("label");
         l.dataset.v = v;
-        l.innerHTML = '<input type="radio" name="' + name + '" value="' + v + '" aria-label="' + v + '"><span>' + v + "</span>";
+        l.innerHTML = '<input type="radio" name="' + name + '" value="' + v + '" aria-label="' + v + (v === 1 ? " estrella" : " estrellas") + '">' +
+          '<span class="estrella"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z"/></svg><b>' + v + "</b></span>";
         scale.appendChild(l);
       }
       var val = document.createElement("span");
       val.className = "m-val";
       val.setAttribute("aria-live", "polite");
       lab.appendChild(val);
+      scale.addEventListener("mouseover", function (ev) {
+        var l = ev.target.closest("label");
+        if (l) scale.dataset.h = l.dataset.v;
+      });
+      scale.addEventListener("mouseleave", function () { delete scale.dataset.h; });
       row.appendChild(lab);
       row.appendChild(scale);
       container.appendChild(row);
@@ -178,6 +184,7 @@
     var c = $("input:checked", row);
     row.classList.toggle("rated", !!c);
     row.dataset.v = c ? c.value : "";
+    $(".scale", row).dataset.v = c ? c.value : "";
     $(".m-val", row).textContent = c ? NIVELES[c.value] : "";
   }
   function refreshStepReady() {
@@ -223,8 +230,17 @@
     saveDraft();
   });
 
+  var ANIMO = [
+    "¡Muy bien! Sigamos con los servicios 💚",
+    "¡Excelente! Ya va casi por la mitad",
+    "¡Qué bien! Ya pasó la mitad de la encuesta",
+    "¡Solo falta una sección! Ya casi termina",
+  ];
   $("#next").addEventListener("click", function () {
-    if (validateStep(current)) showStep(current + 1);
+    if (validateStep(current)) {
+      showStep(current + 1);
+      aviso(ANIMO[current - 1]);
+    }
   });
   $("#prev").addEventListener("click", function () {
     if (current > 0) showStep(current - 1, true);
@@ -330,17 +346,83 @@
       .then(function (j) { return !!j.existe; });
   }
 
+  /* ---------- Repaso antes de enviar ---------- */
+  function textoDe(q) {
+    var t = $(".q-title", q).cloneNode(true);
+    $$(".num, .req", t).forEach(function (x) { x.remove(); });
+    return t.textContent.trim();
+  }
+  function respuestaDe(q) {
+    var matrix = $(".matrix", q);
+    if (matrix) {
+      var filas = $$(".m-row", matrix).filter(function (r) { return !r.hidden && $("input:checked", r); });
+      if (!filas.length) return "";
+      return filas.map(function (r) {
+        var v = +$("input:checked", r).value;
+        return '<span class="rp-fila">' + escapar(r.dataset.label) + ' <span class="rp-estrellas" data-v="' + v + '">' +
+          "★★★★★".slice(0, v) + '<span class="rp-vacias">' + "★★★★★".slice(v) + "</span></span> " + NIVELES[v] + "</span>";
+      }).join("");
+    }
+    var sel = $("select", q);
+    if (sel) return sel.value === OTRA ? escapar("Otra: " + filialOtra.value.trim()) : escapar(sel.value);
+    var txt = $("textarea", q);
+    if (txt) return escapar(txt.value.trim());
+    return $$("input:checked", q).map(function (i) { return escapar(i.value); }).join(", ");
+  }
+  function escapar(t) {
+    var d = document.createElement("div");
+    d.textContent = t;
+    return d.innerHTML;
+  }
+
+  function mostrarRepaso() {
+    var html = steps.map(function (st, i) {
+      var preguntas = $$(".q", st).map(function (q) {
+        var r = respuestaDe(q);
+        return '<div class="rp-q"><p class="rp-preg">' + escapar(textoDe(q)) + "</p>" +
+          '<p class="rp-resp' + (r ? "" : " vacia") + '">' + (r || "Sin respuesta") + "</p></div>";
+      }).join("");
+      return '<article class="rp-sec ' + st.className.replace("step", "").replace("active", "").replace("back", "").trim() + '" style="--i:' + i + '">' +
+        '<header><h3><span>' + (i + 1) + "</span> " + escapar(st.dataset.title) + "</h3>" +
+        '<button type="button" class="btn btn-sec rp-cambiar" data-paso="' + i + '"><i class="fa-solid fa-pen"></i> Cambiar</button></header>' +
+        preguntas + "</article>";
+    }).join("");
+    $("#review-list").innerHTML = html;
+    $("#aviso").classList.remove("ver");
+    $("#survey").hidden = true;
+    $("#review").hidden = false;
+    $("#review-status").textContent = "";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    $("#review").focus({ preventScroll: true });
+  }
+  function volverAEncuesta(paso) {
+    $("#review").hidden = true;
+    $("#survey").hidden = false;
+    showStep(paso, true);
+  }
+  $("#review-list").addEventListener("click", function (e) {
+    var b = e.target.closest(".rp-cambiar");
+    if (b) volverAEncuesta(+b.dataset.paso);
+  });
+  $("#review-back").addEventListener("click", function () { volverAEncuesta(steps.length - 1); });
+
   /* ---------- Envío ---------- */
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     for (var i = 0; i < steps.length; i++) {
       if (!validateStep(i)) { if (i !== current) showStep(i, true); return; }
     }
-    var btn = $("#submit");
+    mostrarRepaso();
+  });
+
+  var ultimaFilial = "";
+  $("#review-send").addEventListener("click", function () {
+    var btn = $("#review-send");
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…';
     var data = collect();
     data.id_persona = idPersona;
+    ultimaFilial = data.filial;
 
     var send = cfg.endpoint
       ? fetch(cfg.endpoint, {
@@ -364,18 +446,19 @@
     send.then(function () {
       guardarIdLocal(idPersona);
       clearDraft();
-      $("#survey").hidden = true;
+      $("#review").hidden = true;
       $("#thanks").hidden = false;
       $("#thanks").focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
+      prepararFinal();
       setTimeout(confeti, 250);
     }).catch(function (err) {
-      $("#form-status").textContent = err && err.message === "duplicado"
+      $("#review-status").textContent = err && err.message === "duplicado"
         ? "Esta cédula ya respondió la encuesta. Solo se permite una respuesta por persona."
         : "No se pudo enviar. Revise su conexión e intente de nuevo.";
     }).finally(function () {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar encuesta';
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Confirmar y enviar';
     });
   });
 
@@ -419,11 +502,17 @@
         return;
       }
       DRAFT_KEY = "adep-encuesta-borrador-" + idPersona.slice(0, 16);
-      $("#intro").hidden = true;
-      $("#survey").hidden = false;
-      var paso = loadDraft();
-      refreshAll();
-      showStep(paso);
+      var ov = $("#bienvenida");
+      ov.hidden = false;
+      setTimeout(function () {
+        ov.classList.add("sale");
+        $("#intro").hidden = true;
+        $("#survey").hidden = false;
+        var paso = loadDraft();
+        refreshAll();
+        showStep(paso);
+        setTimeout(function () { ov.hidden = true; ov.classList.remove("sale"); }, 450);
+      }, 1700);
     }).catch(function () {
       errorCedula("No se pudo verificar la cédula. Revise su conexión e intente de nuevo.");
     }).finally(function () {
@@ -439,6 +528,7 @@
     idPersona = "";
     cedulaInput.value = "";
     $("#thanks").hidden = true;
+    $("#review").hidden = true;
     $("#intro").hidden = false;
     window.scrollTo({ top: 0 });
   });
@@ -498,6 +588,176 @@
 
   if (Reconocimiento) {
     $$("textarea, #filial_otra", form).forEach(agregarMicrofono);
+  }
+
+  /* ---------- Avisos breves ---------- */
+  var avisoTimer;
+  function aviso(msg) {
+    if (!msg) return;
+    var el = $("#aviso");
+    el.textContent = msg;
+    el.classList.remove("ver");
+    void el.offsetWidth;
+    el.classList.add("ver");
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(function () { el.classList.remove("ver"); }, 3200);
+  }
+
+  /* ---------- Lectura en voz alta de cada pregunta ---------- */
+  var voz = window.speechSynthesis;
+  var leyendo = null;
+  function vozEspanol() {
+    var voces = voz.getVoices();
+    return voces.find(function (v) { return /^es[-_]CR/i.test(v.lang); }) ||
+      voces.find(function (v) { return /^es[-_](419|MX|US|CO)/i.test(v.lang); }) ||
+      voces.find(function (v) { return /^es/i.test(v.lang); });
+  }
+  function textoParaLeer(q) {
+    var partes = [textoDe(q)];
+    var hint = $(".hint", q);
+    if (hint) partes.push(hint.textContent);
+    var ops = $$(".opt > span", q).map(function (o) { return o.textContent.trim(); });
+    if (ops.length) partes.push("Opciones: " + ops.join(". ") + ".");
+    var filas = $$(".m-row", q).filter(function (r) { return !r.hidden; }).map(function (r) { return r.dataset.label; });
+    if (filas.length) partes.push("Califique con estrellas: " + filas.join(". ") + ".");
+    if ($("select", q)) partes.push("Elija su filial o núcleo de la lista.");
+    return partes.join(" ");
+  }
+  function pararLectura() {
+    if (voz) voz.cancel();
+    if (leyendo) leyendo.classList.remove("hablando");
+    leyendo = null;
+  }
+  if (voz && window.SpeechSynthesisUtterance) {
+    $$(".q", form).forEach(function (q) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "leer";
+      b.setAttribute("aria-label", "Escuchar la pregunta");
+      b.innerHTML = '<i class="fa-solid fa-volume-high"></i><span>Escuchar</span>';
+      q.insertBefore(b, q.firstChild);
+      b.addEventListener("click", function () {
+        var era = leyendo === b;
+        pararLectura();
+        if (era) return;
+        var u = new SpeechSynthesisUtterance(textoParaLeer(q));
+        var v = vozEspanol();
+        if (v) u.voice = v;
+        u.lang = v ? v.lang : "es-CR";
+        u.rate = 0.9;
+        u.onend = u.onerror = function () { if (leyendo === b) pararLectura(); };
+        leyendo = b;
+        b.classList.add("hablando");
+        voz.speak(u);
+      });
+    });
+    window.addEventListener("pagehide", pararLectura);
+  }
+
+  /* ---------- Final: certificado e invitación ---------- */
+  var certBlob = null;
+  function fechaLarga() {
+    return new Date().toLocaleDateString("es-CR", { day: "numeric", month: "long", year: "numeric" });
+  }
+  function dibujarCertificado() {
+    var c = document.createElement("canvas");
+    c.width = 1200; c.height = 800;
+    var x = c.getContext("2d");
+    var g = x.createLinearGradient(0, 0, 1200, 800);
+    g.addColorStop(0, "#04492a"); g.addColorStop(1, "#008744");
+    x.fillStyle = g; x.fillRect(0, 0, 1200, 800);
+    x.fillStyle = "#fff";
+    redondeado(x, 40, 40, 1120, 720, 36); x.fill();
+    x.strokeStyle = "#d4af37"; x.lineWidth = 4;
+    redondeado(x, 62, 62, 1076, 676, 26); x.stroke();
+    x.textAlign = "center";
+    x.fillStyle = "#008744";
+    x.font = "700 26px Inter, Arial, sans-serif";
+    x.fillText("ASOCIACIÓN DE EDUCADORES PENSIONADOS", 600, 300);
+    x.fillStyle = "#04492a";
+    x.font = "800 64px Outfit, Arial, sans-serif";
+    x.fillText("Certificado de participación", 600, 380);
+    x.fillStyle = "#4f5f57";
+    x.font = "500 30px Inter, Arial, sans-serif";
+    x.fillText("Gracias por participar en la Encuesta de Servicio", 600, 445);
+    var fil = (ultimaFilial || "").replace(/^Otra: /, "");
+    if (fil) x.fillText("Persona asociada · " + fil, 600, 492);
+    x.fillStyle = "#e52521";
+    x.font = "italic 700 38px Outfit, Arial, sans-serif";
+    x.fillText("«Orgullosos de ser solidarios»", 600, 580);
+    x.fillStyle = "#4f5f57";
+    x.font = "500 24px Inter, Arial, sans-serif";
+    x.fillText(fechaLarga(), 600, 650);
+    x.fillStyle = "#008744";
+    x.font = "700 20px Inter, Arial, sans-serif";
+    x.fillText("COMPRENSIÓN · FRATERNIDAD · COOPERACIÓN", 600, 700);
+    return new Promise(function (ok) {
+      var logo = new Image();
+      logo.onload = function () {
+        x.save(); x.beginPath(); x.arc(600, 175, 90, 0, Math.PI * 2); x.clip();
+        x.drawImage(logo, 510, 85, 180, 180); x.restore();
+        ok(c);
+      };
+      logo.onerror = function () { ok(c); };
+      logo.src = "assets/logo-adep.png";
+    });
+  }
+  function redondeado(x, a, b, w, h, r) {
+    x.beginPath();
+    x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r);
+    x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath();
+  }
+  function prepararFinal() {
+    var enlace = location.href.split("#")[0].split("?")[0];
+    var msg = "¡Hola! 👋 Ya respondí la Encuesta de Servicio de la ADEP. Su opinión también es muy importante. " +
+      "Puede responderla aquí: " + enlace + " 💚 Orgullosos de ser solidarios.";
+    $("#invitar-wa").href = "https://wa.me/?text=" + encodeURIComponent(msg);
+
+    dibujarCertificado().then(function (c) {
+      $("#cert-img").src = c.toDataURL("image/png");
+      c.toBlob(function (b) {
+        certBlob = b;
+        var archivo = b && window.File ? new File([b], "certificado-encuesta-adep.png", { type: "image/png" }) : null;
+        $("#cert-compartir").hidden = !(archivo && navigator.canShare && navigator.canShare({ files: [archivo] }));
+      }, "image/png");
+    });
+  }
+  $("#cert-bajar").addEventListener("click", function () {
+    var a = document.createElement("a");
+    a.href = $("#cert-img").src;
+    a.download = "certificado-encuesta-adep.png";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  $("#cert-compartir").addEventListener("click", function () {
+    if (!certBlob) return;
+    var archivo = new File([certBlob], "certificado-encuesta-adep.png", { type: "image/png" });
+    navigator.share({ files: [archivo], title: "Encuesta ADEP", text: "¡Participé en la Encuesta de Servicio de la ADEP! Orgullosos de ser solidarios 💚" })
+      .catch(function () { /* la persona canceló */ });
+  });
+
+  /* ---------- Saludo según la hora ---------- */
+  (function () {
+    var h = new Date().getHours();
+    var t = h >= 5 && h < 12 ? ["¡Buenos días!", "fa-sun"] : h >= 12 && h < 19 ? ["¡Buenas tardes!", "fa-cloud-sun"] : ["¡Buenas noches!", "fa-moon"];
+    $("#saludo-txt").textContent = t[0];
+    $("#saludo-ico").innerHTML = '<i class="fa-solid ' + t[1] + '"></i>';
+  })();
+
+  /* ---------- Instalar como aplicación ---------- */
+  var instalacion = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    instalacion = e;
+    $("#instalar").hidden = false;
+  });
+  $("#instalar").addEventListener("click", function () {
+    if (!instalacion) return;
+    instalacion.prompt();
+    instalacion.userChoice.finally(function () { instalacion = null; $("#instalar").hidden = true; });
+  });
+  window.addEventListener("appinstalled", function () { $("#instalar").hidden = true; aviso("¡Listo! La encuesta quedó instalada en su equipo 📲"); });
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    navigator.serviceWorker.register("sw.js").catch(function () { /* nada */ });
   }
 
   /* ---------- Confeti al terminar ---------- */

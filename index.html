@@ -7,6 +7,10 @@
   <meta name="description" content="Encuesta de satisfacción de la Asociación de Educadores Pensionados (ADEP).">
   <meta name="theme-color" content="#006b35">
   <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Encuesta ADEP">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +19,7 @@
 </head>
 <body>
   <a class="skip" href="#main">Saltar al contenido</a>
+  <div class="hojas" aria-hidden="true"><span class="hoja h1"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h2"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h3"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h4"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h5"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h6"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h7"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span><span class="hoja h8"><svg viewBox="0 0 40 40"><path d="M20 2C9 10 6 24 20 38 34 24 31 10 20 2Z"/><path d="M20 8v26" class="nervio"/></svg></span></div>
 
   <header class="app-header">
     <div class="head-in">
@@ -25,6 +30,7 @@
           <span>Encuesta de servicio</span>
         </div>
       </div>
+      <button type="button" class="instalar" id="instalar" hidden><i class="fa-solid fa-mobile-screen-button"></i><span>Instalar app</span></button>
       <div id="a11y-bar" role="group" aria-label="Accesibilidad">
         <button type="button" id="a11y-menos" aria-label="Letra más pequeña">A−</button>
         <button type="button" id="a11y-mas" aria-label="Letra más grande">A+</button>
@@ -37,6 +43,7 @@
     <!-- Portada -->
     <section id="intro" class="portada">
       <div class="portada-txt">
+        <p class="saludo" id="saludo"><span class="saludo-ico" id="saludo-ico"></span><span id="saludo-txt">¡Hola!</span></p>
         <span class="etiqueta"><span class="punto"></span> Encuesta de servicio a la persona asociada</span>
         <h1>¡Su opinión es <span class="resalta">muy importante</span> para nosotros!</h1>
         <p class="lead">
@@ -68,6 +75,7 @@
 
       <div class="portada-arte" aria-hidden="true">
         <div class="aro aro-1"></div>
+        <div class="foto"></div>
         <div class="aro aro-2"></div>
         <img src="assets/logo-adep.png" alt="" class="logo-grande" width="220" height="220">
         <span class="valor v1"><i class="fa-solid fa-heart"></i> Comprensión</span>
@@ -276,11 +284,28 @@
           <div class="nav">
             <button type="button" class="btn btn-sec" id="prev"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
             <button type="button" class="btn btn-green" id="next">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
-            <button type="submit" class="btn btn-green" id="submit" hidden><i class="fa-solid fa-paper-plane"></i> Enviar encuesta</button>
+            <button type="submit" class="btn btn-green" id="submit" hidden><i class="fa-solid fa-list-check"></i> Revisar y enviar</button>
           </div>
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
         </form>
         </div>
+      </section>
+
+      <!-- Repaso antes de enviar -->
+      <section id="review" class="repaso" hidden tabindex="-1">
+        <div class="repaso-cab">
+          <span class="sec-ico"><i class="fa-solid fa-clipboard-check"></i></span>
+          <div>
+            <h2>Revise sus respuestas</h2>
+            <p>Si desea cambiar algo, toque «Cambiar» en la sección. Cuando todo esté bien, envíe la encuesta.</p>
+          </div>
+        </div>
+        <div id="review-list" class="repaso-lista"></div>
+        <div class="nav">
+          <button type="button" class="btn btn-sec" id="review-back"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+          <button type="button" class="btn btn-green" id="review-send"><i class="fa-solid fa-paper-plane"></i> Confirmar y enviar</button>
+        </div>
+        <p class="form-status" id="review-status" role="status" aria-live="polite"></p>
       </section>
 
       <!-- Gracias -->
@@ -291,6 +316,21 @@
           <p>Sus respuestas fueron enviadas con éxito. Su opinión nos ayuda a seguir mejorando
             los programas y servicios para todas las personas asociadas.</p>
           <p class="lema-final"><i class="fa-solid fa-heart"></i> Orgullosos de ser solidarios <i class="fa-solid fa-heart"></i></p>
+
+          <div class="certificado">
+            <p class="cert-titulo"><i class="fa-solid fa-award"></i> Su certificado de participación</p>
+            <img id="cert-img" alt="Certificado de participación en la Encuesta de Servicio ADEP" width="1200" height="800">
+            <div class="cert-botones">
+              <button type="button" class="btn btn-green" id="cert-bajar"><i class="fa-solid fa-download"></i> Descargar</button>
+              <button type="button" class="btn btn-sec" id="cert-compartir" hidden><i class="fa-solid fa-share-nodes"></i> Compartir</button>
+            </div>
+          </div>
+
+          <div class="invitar">
+            <p>¿Conoce a otras personas asociadas? Invítelas a dar su opinión:</p>
+            <a class="btn btn-wa" id="invitar-wa" href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Invitar por WhatsApp</a>
+          </div>
+
           <button type="button" class="btn btn-sec" id="again"><i class="fa-solid fa-house"></i> Volver al inicio</button>
         </div>
       </section>
@@ -301,6 +341,17 @@
     <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
     <p class="small">No revele nunca su contraseña. No proporcione información personal o confidencial.</p>
   </footer>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <div class="bienvenida-ov" id="bienvenida" hidden>
+    <div class="bv-card">
+      <img src="assets/logo-adep.png" alt="" width="96" height="96">
+      <h2>¡Bienvenido(a)!</h2>
+      <p>Gracias por tomarse este tiempo. Vamos a comenzar…</p>
+      <span class="bv-carga"><span></span></span>
+    </div>
+  </div>
 
   <canvas id="confeti" aria-hidden="true"></canvas>
 
