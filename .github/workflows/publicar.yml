@@ -1,0 +1,28 @@
+# Publica la encuesta en Firebase Hosting (https://adep-encuesta.web.app) cada vez que se sube un cambio a main.
+# Necesita el secreto FIREBASE_SERVICE_ACCOUNT (vea PUBLICAR.md).
+name: Publicar página
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar los archivos de la página
+        run: |
+          mkdir -p www
+          cp index.html resultados.html www/
+          cp -r css js assets www/
+
+      - name: Publicar en Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: adep-encuesta
+          channelId: live
