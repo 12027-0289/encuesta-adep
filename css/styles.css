@@ -234,9 +234,13 @@ select.text option { font-weight: 500; color: var(--ink); }
 
 /* ---------- Opciones ---------- */
 .options { display: grid; gap: .7rem; margin-top: .8rem; }
-.cols-2 { grid-template-columns: repeat(2, 1fr); }
-.cols-3 { grid-template-columns: repeat(3, 1fr); }
-.cols-4 { grid-template-columns: repeat(4, 1fr); }
+/* Columnas que se acomodan solas: nunca más de N por fila y bajan a otra fila
+   cuando no caben (ventana angosta o letra agrandada). */
+.cols-2 { grid-template-columns: repeat(auto-fit, minmax(max(13rem, calc((100% - .7rem) / 2)), 1fr)); }
+.cols-3 { grid-template-columns: repeat(auto-fit, minmax(max(11.5rem, calc((100% - 1.4rem) / 3)), 1fr)); }
+.cols-4 { grid-template-columns: repeat(auto-fit, minmax(max(9rem, calc((100% - 2.1rem) / 4)), 1fr)); }
+.options > * { min-width: 0; }
+.opt > span { overflow-wrap: anywhere; }
 .opt { position: relative; cursor: pointer; display: block; }
 .opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .opt > span {
@@ -642,7 +646,6 @@ html.hc *:focus-visible { outline: 4px solid var(--r) !important; }
   .sec-nombre { font-size: 1.4rem; }
   .sec-ico { width: 2.8rem; height: 2.8rem; font-size: 1.15rem; }
   .q { padding-left: 1.4rem; }
-  .cols-3, .cols-4 { grid-template-columns: repeat(2, 1fr); }
   .m-row { grid-template-columns: 1fr; }
   .scale { justify-content: space-between; }
   .scale-legend { justify-content: space-between; }
