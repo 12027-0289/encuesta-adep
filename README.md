@@ -20,6 +20,10 @@ css/styles.css             Estilos y paleta de colores (variables en :root)
 js/config.js               Servicios, aspectos a calificar y URL de envío
 js/app.js                  Lógica del formulario
 js/pdf.js                  PDF de cada respuesta (se adjunta al correo)
+informe.html               Informe general: se arrastran los PDF recibidos
+js/informe.js              Lee los PDF y arma el informe
+js/informe-pdf.js          PDF del informe general con gráficos y porcentajes
+css/informe.css            Estilos de la página del informe
 resultados.html            Resultados para la Junta Directiva (con clave)
 js/resultados.js           Gráficos, filtros, comentarios y descarga a Excel
 css/resultados.css         Estilos de la página de resultados
@@ -63,6 +67,14 @@ correos: ["primer-correo@ejemplo.com", "segundo-correo@ejemplo.com"],
   es la misma persona respondiendo otra vez.
 - Sin la hoja de Google, el bloqueo de «una vez por persona» solo funciona en el mismo equipo,
   y la página de resultados no tiene de dónde leer los datos.
+
+## Informe general (sin cuentas)
+
+Cada PDF individual lleva guardadas por dentro (invisibles) las respuestas de esa persona.
+En **`informe.html`** se arrastran los PDF que llegaron al correo y se descarga el
+**informe general en PDF**: cifras principales, gráficos y porcentajes de cada pregunta,
+resultados por filial y todos los comentarios. Los archivos se leen solo en el equipo, no se suben a ningún lado.
+Si la misma persona aparece más de una vez (mismo código), se usa solo su respuesta más reciente.
 
 ## Recibir las respuestas (Google Sheets)
 
