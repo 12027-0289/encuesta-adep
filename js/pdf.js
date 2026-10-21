@@ -5,7 +5,6 @@
  * ADEP_PDF.crear(info) -> Promise<Blob>
  *   info = {
  *     fecha, filial, edad, antiguedad, codigo,
- *     datos: { ...respuestas }   (se guardan dentro del PDF para el informe general)
  *     secciones: [{ titulo, color, preguntas: [{ num, texto, respuesta } | { num, texto, filas: [{ et, v }] }] }]
  *   }
  */
@@ -19,13 +18,6 @@
 
   var W = 210, H = 297, M = 16; // A4 en milímetros
   var ANCHO = W - M * 2;
-
-  var MARCA = "ADEP-ENCUESTA-DATOS:";
-  function aBase64(texto) {
-    var bytes = new TextEncoder().encode(texto), bin = "";
-    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  }
 
   function hexARgb(h) {
     h = h.replace("#", "");
@@ -53,8 +45,6 @@
     return cargarImagen("assets/logo-adep.png").then(function (logo) {
       var doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
       doc.setProperties({ title: "Encuesta de Servicio ADEP", author: "ADEP", subject: "Respuesta de una persona asociada" });
-      // Las respuestas van guardadas (invisibles) dentro del PDF para armar el informe general en informe.html.
-      if (info.datos) doc.setProperties({ keywords: MARCA + aBase64(JSON.stringify(info.datos)) });
       var y = 0;
 
       function color(c, tipo) {

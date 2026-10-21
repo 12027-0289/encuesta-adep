@@ -437,7 +437,6 @@
       edad: data.edad,
       antiguedad: data.antiguedad,
       codigo: String(data.id_persona || "").slice(0, 12),
-      datos: data,
       secciones: steps.map(function (st, i) {
         return {
           titulo: st.dataset.title,
