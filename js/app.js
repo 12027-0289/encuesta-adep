@@ -446,6 +446,24 @@
     }).catch(function () { return null; });
   }
 
+  // Informe general: Google entrega solo números de las respuestas anteriores (?resumen=1)
+  // y aquí se suma la respuesta nueva. Si algo falla, Google arma un informe sencillo.
+  function informeBase64(data) {
+    if (!window.ADEP_INFORME) return Promise.resolve(null);
+    return fetch(cfg.endpoint + "?resumen=1").then(function (r) { return r.json(); }).then(function (j) {
+      var filas = (j && j.filas) || [];
+      return window.ADEP_INFORME.crear(filas.concat([data]));
+    }).then(blobABase64).catch(function () { return null; });
+  }
+  function blobABase64(blob) {
+    return new Promise(function (ok) {
+      var fr = new FileReader();
+      fr.onload = function () { ok(String(fr.result).split(",")[1]); };
+      fr.onerror = function () { ok(null); };
+      fr.readAsDataURL(blob);
+    });
+  }
+
   // Datos para el PDF, tomados de las preguntas tal como se ven en pantalla.
   var COLORES_SECCION = ["#008744", "#0d8a7a", "#b8860b", "#c8322e", "#04492a"];
   function infoPDF(data) {
@@ -623,9 +641,10 @@
     var correos = (cfg.correos || []).filter(Boolean);
     var send;
     if (cfg.endpoint) {
-      send = pdfBase64(data).then(function (pdf) {
+      send = Promise.all([pdfBase64(data), informeBase64(data)]).then(function (pdfs) {
         var envio = Object.assign({}, data);
-        if (pdf) { envio.pdf_base64 = pdf.base64; envio.pdf_nombre = pdf.nombre; }
+        if (pdfs[0]) { envio.pdf_base64 = pdfs[0].base64; envio.pdf_nombre = pdfs[0].nombre; }
+        if (pdfs[1]) envio.informe_base64 = pdfs[1];
         return enviarHoja(envio);
       });
     } else {

@@ -50,7 +50,8 @@ Para cambiar los correos más adelante, solo se edita la propiedad `CORREOS`; no
 3. Google pedirá **revisar permisos**: elija la cuenta de ADEP.
    Si aparece "Google no ha verificado esta aplicación", presione **Configuración avanzada → Ir a … (no seguro)** y luego **Permitir**.
    Es normal: el código es de ADEP y solo usa esta hoja y el correo de esta cuenta.
-4. Revise los correos de la lista: debe llegar "Encuesta ADEP · Prueba del informe" con un PDF (todavía vacío, con 0 respuestas).
+4. Revise los correos de la lista: debe llegar "Encuesta ADEP · Prueba de envío".
+   (Los dos PDF —la respuesta y el informe general con gráficos— llegan cuando alguien responde la encuesta.)
 
 ## 5. Publicar como aplicación web
 

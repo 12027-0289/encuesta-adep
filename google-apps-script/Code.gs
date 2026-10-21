@@ -3,9 +3,10 @@
  *
  * Con cada respuesta:
  *   1. La guarda como una fila en la hoja "Respuestas" (y rechaza cédulas repetidas).
- *   2. Arma el INFORME GENERAL en PDF con todas las respuestas guardadas.
- *   3. Envía un correo, desde esta cuenta de Gmail, con dos PDF adjuntos:
- *      la respuesta de la persona y el informe general.
+ *   2. Envía un correo, desde esta cuenta de Gmail, con dos PDF adjuntos que arma la encuesta:
+ *      la respuesta de la persona y el informe general con gráficos.
+ *      (Para armar el informe, la encuesta pide aquí solo números: GET ?resumen=1.
+ *       Nunca se entregan cédulas, filiales ni comentarios.)
  * Además entrega los datos a resultados.html, solo con la clave correcta.
  *
  * Instalación: vea INSTALAR-BACKEND.md. Datos que NO van en este código
@@ -79,10 +80,23 @@ function filas_(sheet) {
 
 /* ======================= Entradas ======================= */
 // GET ?verificar=<id>  ->  { existe: true | false }
+// GET ?resumen=1       ->  { ok, filas: [...] }  solo datos para gráficos (sin cédula, filial ni comentarios)
 function doGet(e) {
-  var id = (e && e.parameter && e.parameter.verificar) || "";
-  if (!id) return responder_({ ok: true, servicio: "Encuesta ADEP" });
-  return responder_({ existe: existe_(hoja_(), id) });
+  var p = (e && e.parameter) || {};
+  if (p.resumen) return responder_({ ok: true, filas: filasAnonimas_(hoja_()) });
+  if (!p.verificar) return responder_({ ok: true, servicio: "Encuesta ADEP" });
+  return responder_({ existe: existe_(hoja_(), p.verificar) });
+}
+
+var CAMPOS_GRAFICOS = ["edad", "antiguedad", "servicios_utilizados", "mejora_bienestar", "recomendaria_adep",
+  "canales_comunicacion", "redes_sociales"];
+function filasAnonimas_(sheet) {
+  return filas_(sheet).map(function (r) {
+    var o = { fecha: String(r.fecha || "").slice(0, 10), provincia: provincia_(r.filial) };
+    CAMPOS_GRAFICOS.forEach(function (k) { o[k] = r[k]; });
+    Object.keys(r).forEach(function (k) { if (esCalificacion_(k)) o[k] = r[k]; });
+    return o;
+  });
 }
 
 // POST { accion: "resultados", clave } -> { ok, filas }
@@ -140,13 +154,12 @@ function enviarCorreo_(data, sheet) {
   var hoy = Utilities.formatDate(new Date(), "America/Costa_Rica", "yyyy-MM-dd");
   var adjuntos = [];
 
-  var b64 = String(data.pdf_base64 || "");
-  if (b64 && b64.length < MAX_PDF && b64.indexOf("JVBERi0") === 0) { // "JVBERi0" = "%PDF-" en base64
-    var nombre = String(data.pdf_nombre || "Respuesta-Encuesta-ADEP.pdf").replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 80);
-    adjuntos.push(Utilities.newBlob(Utilities.base64Decode(b64), "application/pdf", nombre));
-  }
-  var informe = Utilities.newBlob(htmlInforme_(R), "text/html", "informe.html").getAs("application/pdf")
-    .setName("Informe-general-Encuesta-ADEP-" + hoy + ".pdf");
+  var individual = pdfRecibido_(data.pdf_base64, data.pdf_nombre || "Respuesta-Encuesta-ADEP.pdf");
+  if (individual) adjuntos.push(individual);
+  // El informe general lo arma la encuesta (con gráficos). Si no llegó, se arma aquí uno sencillo.
+  var informe = pdfRecibido_(data.informe_base64, "Informe-general-Encuesta-ADEP-" + hoy + ".pdf") ||
+    Utilities.newBlob(htmlInforme_(R), "text/html", "informe.html").getAs("application/pdf")
+      .setName("Informe-general-Encuesta-ADEP-" + hoy + ".pdf");
   adjuntos.push(informe);
 
   var filial = String(data.filial || "").replace(/\s*\([^)]+\)\s*$/, "");
@@ -158,6 +171,14 @@ function enviarCorreo_(data, sheet) {
     name: "Encuesta de Servicio ADEP",
   });
   return true;
+}
+
+// Valida un PDF enviado en base64 por la encuesta.
+function pdfRecibido_(b64, nombre) {
+  b64 = String(b64 || "");
+  if (!b64 || b64.length > MAX_PDF || b64.indexOf("JVBERi0") !== 0) return null; // "JVBERi0" = "%PDF-"
+  nombre = String(nombre).replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 80);
+  return Utilities.newBlob(Utilities.base64Decode(b64), "application/pdf", nombre);
 }
 
 /* ======================= Cálculos del informe ======================= */
@@ -378,12 +399,20 @@ function htmlCorreo_(filial, R) {
     '<p style="color:#008744;font-weight:bold;">Orgullosos de ser personas solidarias</p></div></div>';
 }
 
-/* Prueba manual: en el editor elija "probarCorreo" y presione Ejecutar. Envía el informe actual a CORREOS. */
+/* Prueba manual: en el editor elija "probarCorreo" y presione Ejecutar.
+   Envía un correo corto a CORREOS para confirmar que el envío funciona.
+   (El informe general con gráficos lo arma la encuesta y llega con cada respuesta.) */
 function probarCorreo() {
-  var sheet = hoja_();
-  var R = resumen_(filas_(sheet));
-  var informe = Utilities.newBlob(htmlInforme_(R), "text/html", "informe.html").getAs("application/pdf").setName("Informe-de-prueba.pdf");
-  MailApp.sendEmail({ to: correos_().join(","), subject: "Encuesta ADEP · Prueba del informe", htmlBody: htmlCorreo_("(prueba)", R), attachments: [informe], name: "Encuesta de Servicio ADEP" });
+  var para = correos_();
+  if (!para.length) throw new Error("Agregue la propiedad CORREOS (Configuración del proyecto).");
+  var R = resumen_(filas_(hoja_()));
+  MailApp.sendEmail({
+    to: para.join(","),
+    subject: "Encuesta ADEP · Prueba de envío",
+    htmlBody: htmlCorreo_("(prueba)", R).replace("Nueva respuesta recibida", "Prueba de envío")
+      .replace(/<p>Adjuntos:[\s\S]*?<\/ul>/, "<p>Si recibió este correo, el envío funciona. Con cada respuesta llegarán dos PDF: la respuesta y el informe general con gráficos.</p>"),
+    name: "Encuesta de Servicio ADEP",
+  });
 }
 
 /* Logo de ADEP para el informe (imagen pequeña en base64). */

@@ -20,6 +20,7 @@ css/styles.css             Estilos y paleta de colores (variables en :root)
 js/config.js               Servicios, aspectos a calificar y URL de envío
 js/app.js                  Lógica del formulario
 js/pdf.js                  PDF de cada respuesta (se adjunta al correo)
+js/informe-pdf.js          PDF del informe general con gráficos (se adjunta al correo)
 resultados.html            Resultados para la Junta Directiva (con clave)
 js/resultados.js           Gráficos, filtros, comentarios y descarga a Excel
 css/resultados.css         Estilos de la página de resultados
