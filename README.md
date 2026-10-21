@@ -19,6 +19,7 @@ index.html                 Página principal
 css/styles.css             Estilos y paleta de colores (variables en :root)
 js/config.js               Servicios, aspectos a calificar y URL de envío
 js/app.js                  Lógica del formulario
+js/pdf.js                  PDF de cada respuesta (se adjunta al correo)
 resultados.html            Resultados para la Junta Directiva (con clave)
 js/resultados.js           Gráficos, filtros, comentarios y descarga a Excel
 css/resultados.css         Estilos de la página de resultados
@@ -45,8 +46,10 @@ Necesita que la página se abra por `https` (GitHub Pages) o desde Live Server.
 
 ## Recibir las respuestas por correo
 
-Cada respuesta se envía como una tabla ordenada a los correos de `correos` en `js/config.js`,
-usando el servicio gratuito [FormSubmit.co](https://formsubmit.co) (no requiere cuenta).
+Cada respuesta se envía a los correos de `correos` en `js/config.js` con un **PDF adjunto**
+(encabezado de ADEP, las 5 secciones con sus colores y las calificaciones dibujadas), usando el
+servicio gratuito [FormSubmit.co](https://formsubmit.co) (no requiere cuenta). El PDF se arma en el
+navegador con jsPDF (`js/pdf.js`). Si no se pudiera crear, la respuesta se envía como tabla en el correo.
 
 ```js
 correos: ["primer-correo@ejemplo.com", "segundo-correo@ejemplo.com"],

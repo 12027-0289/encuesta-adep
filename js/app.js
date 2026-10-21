@@ -411,7 +411,7 @@
     });
   }
 
-  // Correo (FormSubmit.co): llega una tabla con las respuestas en orden.
+  // Etiquetas para el correo de respaldo (tabla).
   var ETIQUETAS = [
     ["filial", "1. Filial o núcleo"],
     ["edad", "2. Edad"],
@@ -428,7 +428,72 @@
     ["nuevos_beneficios", "13. Nuevos beneficios"],
     ["recomendaciones", "14. Recomendaciones"],
   ];
+  // Datos para el PDF, tomados de las preguntas tal como se ven en pantalla.
+  var COLORES_SECCION = ["#008744", "#0d8a7a", "#b8860b", "#c8322e", "#04492a"];
+  function infoPDF(data) {
+    return {
+      fecha: new Date().toLocaleString("es-CR", { dateStyle: "long", timeStyle: "short" }),
+      filial: String(data.filial || "").replace(/\s*\(([^)]+)\)$/, " · $1"),
+      edad: data.edad,
+      antiguedad: data.antiguedad,
+      codigo: String(data.id_persona || "").slice(0, 12),
+      secciones: steps.map(function (st, i) {
+        return {
+          titulo: st.dataset.title,
+          color: COLORES_SECCION[i],
+          preguntas: $$(".q", st).map(function (q) {
+            var p = { num: $(".num", q).textContent.trim(), texto: textoDe(q) };
+            var matrix = $(".matrix", q);
+            if (matrix) {
+              p.filas = $$(".m-row", matrix).filter(function (r) { return !r.hidden && $("input:checked", r); })
+                .map(function (r) { return { et: r.dataset.label, v: +$("input:checked", r).value }; });
+              return p;
+            }
+            var sel = $("select", q), txt = $("textarea", q);
+            if (sel) p.respuesta = sel.value === OTRA ? "Otra: " + filialOtra.value.trim() : sel.value;
+            else if (txt) p.respuesta = txt.value.trim();
+            else p.respuesta = $$("input:checked", q).map(function (i) { return i.value; }).join(", ");
+            return p;
+          }),
+        };
+      }),
+    };
+  }
+
+  // Correo (FormSubmit.co) con la respuesta completa en un PDF adjunto.
   function enviarCorreo(data, correos) {
+    var crear = window.ADEP_PDF ? window.ADEP_PDF.crear(infoPDF(data)) : Promise.reject(new Error("sin PDF"));
+    return crear.then(function (pdf) {
+      var filial = String(data.filial || "").replace(/\s*\([^)]+\)$/, "");
+      var fd = new FormData();
+      fd.append("_subject", "Encuesta ADEP · Nueva respuesta · " + filial);
+      fd.append("_template", "box");
+      fd.append("_captcha", "false");
+      if (correos.length > 1) fd.append("_cc", correos.slice(1).join(","));
+      fd.append("Mensaje", "Se recibió una nueva respuesta de la Encuesta de Servicio de ADEP (filial " + filial +
+        "). La respuesta completa va en el PDF adjunto.");
+      var nombre = "Encuesta-ADEP-" + filial.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") +
+        "-" + new Date().toISOString().slice(0, 10) + ".pdf";
+      fd.append("attachment", new File([pdf], nombre, { type: "application/pdf" }));
+      return fetch("https://formsubmit.co/ajax/" + encodeURIComponent(correos[0]), {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: fd,
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (String(j.success) !== "true") {
+          console.warn("[ADEP] FormSubmit:", j.message);
+          throw new Error("correo");
+        }
+      });
+    }, function (err) {
+      // Si no se pudo crear el PDF, se envía la tabla para no perder la respuesta.
+      console.warn("[ADEP] No se pudo crear el PDF; se envía como tabla.", err);
+      return enviarTabla(data, correos);
+    });
+  }
+
+  // Respaldo: la respuesta como tabla en el cuerpo del correo.
+  function enviarTabla(data, correos) {
     var cuerpo = {
       _subject: "Encuesta ADEP · Nueva respuesta · " + String(data.filial || "").replace(/\s*\([^)]+\)$/, ""),
       _template: "table",
