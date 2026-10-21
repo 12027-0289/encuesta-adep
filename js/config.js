@@ -7,6 +7,11 @@ window.ADEP_CONFIG = {
   // Si se deja vacío, las respuestas se guardan solo en este navegador (modo demostración).
   endpoint: "",
 
+  // Correos que reciben cada respuesta (servicio gratuito FormSubmit.co).
+  // El primero es el destinatario principal; los demás reciben copia.
+  // La primera vez, FormSubmit envía un correo de activación al primero: hay que confirmarlo.
+  correos: ["abigail.av2006@gmail.com"],
+
   // Texto que se mezcla con la cédula antes de cifrarla (SHA-256). Cámbielo una sola vez
   // antes de publicar la encuesta y no lo vuelva a cambiar, o no se detectarán repetidos.
   sal: "ADEP-encuesta-servicio-2026",

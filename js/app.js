@@ -398,6 +398,80 @@
   });
   $("#review-back").addEventListener("click", function () { volverAEncuesta(steps.length - 1); });
 
+  /* ---------- Destinos de las respuestas ---------- */
+  // Google Sheets (si hay endpoint): guarda la fila y rechaza cédulas repetidas.
+  function enviarHoja(data) {
+    return fetch(cfg.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data),
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j.duplicado) throw new Error("duplicado");
+      if (!j.ok) throw new Error("error");
+    });
+  }
+
+  // Correo (FormSubmit.co): llega una tabla con las respuestas en orden.
+  var ETIQUETAS = [
+    ["filial", "1. Filial o núcleo"],
+    ["edad", "2. Edad"],
+    ["antiguedad", "3. Años en ADEP"],
+    ["servicios_utilizados", "4. Servicios utilizados"],
+    ["*Satisfacción - ", "5. Satisfacción"],
+    ["temas_revista_ecos", "6. Temas para la Revista ECOS"],
+    ["*Aspecto - ", "7. Calificación"],
+    ["mejora_bienestar", "8. ¿ADEP mejora su bienestar?"],
+    ["recomendaria_adep", "9. ¿Recomendaría la ADEP?"],
+    ["canales_comunicacion", "10. Canales de comunicación"],
+    ["redes_sociales", "11. Redes sociales"],
+    ["servicios_a_fortalecer", "12. Servicios a fortalecer"],
+    ["nuevos_beneficios", "13. Nuevos beneficios"],
+    ["recomendaciones", "14. Recomendaciones"],
+  ];
+  function enviarCorreo(data, correos) {
+    var cuerpo = {
+      _subject: "Encuesta ADEP · Nueva respuesta · " + String(data.filial || "").replace(/\s*\([^)]+\)$/, ""),
+      _template: "table",
+      _captcha: "false",
+    };
+    if (correos.length > 1) cuerpo._cc = correos.slice(1).join(",");
+    cuerpo["Fecha"] = new Date().toLocaleString("es-CR", { dateStyle: "long", timeStyle: "short" });
+    ETIQUETAS.forEach(function (e) {
+      if (e[0].charAt(0) === "*") {
+        var prefijo = e[0].slice(1);
+        Object.keys(data).forEach(function (k) {
+          if (k.indexOf(prefijo) === 0 && data[k]) {
+            cuerpo[e[1] + ": " + k.slice(prefijo.length)] = data[k] + " de 5 (" + NIVELES[data[k]] + ")";
+          }
+        });
+      } else {
+        cuerpo[e[1]] = data[e[0]] || "—";
+      }
+    });
+    // Código corto de la persona (de la cédula cifrada): sirve para notar respuestas repetidas.
+    cuerpo["Código de persona"] = String(data.id_persona || "").slice(0, 12);
+    return fetch("https://formsubmit.co/ajax/" + encodeURIComponent(correos[0]), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(cuerpo),
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (String(j.success) !== "true") {
+        console.warn("[ADEP] FormSubmit:", j.message);
+        throw new Error("correo");
+      }
+    });
+  }
+
+  // Sin hoja de Google: copia en este navegador (sirve para la vista de demostración de resultados).
+  function guardarLocal(data) {
+    try {
+      var all = JSON.parse(localStorage.getItem("adep-respuestas") || "[]");
+      all.push(data);
+      localStorage.setItem("adep-respuestas", JSON.stringify(all));
+    } catch (err) { /* nada */ }
+    return new Promise(function (resolve) { setTimeout(resolve, 300); });
+  }
+
   /* ---------- Envío ---------- */
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -414,24 +488,12 @@
     var data = collect();
     data.id_persona = idPersona;
 
-    var send = cfg.endpoint
-      ? fetch(cfg.endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(data),
-        }).then(function (r) { return r.json(); }).then(function (j) {
-          if (j.duplicado) throw new Error("duplicado");
-          if (!j.ok) throw new Error("error");
-        })
-      : new Promise(function (resolve) {
-          try {
-            var all = JSON.parse(localStorage.getItem("adep-respuestas") || "[]");
-            all.push(data);
-            localStorage.setItem("adep-respuestas", JSON.stringify(all));
-          } catch (err) { /* nada */ }
-          console.info("[ADEP] Modo demostración: respuesta guardada localmente", data);
-          setTimeout(resolve, 700);
-        });
+    var correos = (cfg.correos || []).filter(Boolean);
+    var envios = Promise.resolve();
+    if (cfg.endpoint) envios = envios.then(function () { return enviarHoja(data); });
+    if (correos.length) envios = envios.then(function () { return enviarCorreo(data, correos); });
+    if (!cfg.endpoint) envios = envios.then(function () { return guardarLocal(data); });
+    var send = envios;
 
     send.then(function () {
       guardarIdLocal(idPersona);

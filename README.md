@@ -43,6 +43,24 @@ rechaza una segunda respuesta con el mismo código. Cambie `sal` una sola vez an
 Las preguntas abiertas tienen un botón **Dictar con mi voz** (Chrome, Edge y Safari).
 Necesita que la página se abra por `https` (GitHub Pages) o desde Live Server.
 
+## Recibir las respuestas por correo
+
+Cada respuesta se envía como una tabla ordenada a los correos de `correos` en `js/config.js`,
+usando el servicio gratuito [FormSubmit.co](https://formsubmit.co) (no requiere cuenta).
+
+```js
+correos: ["primer-correo@ejemplo.com", "segundo-correo@ejemplo.com"],
+```
+
+- El **primer** correo es el destinatario principal; los demás reciben **copia**.
+- **Activación (una sola vez):** con la primera respuesta, FormSubmit envía al primer correo un mensaje
+  «Confirm your email». Hay que abrirlo y presionar **Activate Form**. Esa primera respuesta no se reenvía;
+  desde la siguiente, todas llegan.
+- La línea «Código de persona» es un pedazo de la cédula cifrada: si dos correos tienen el mismo código,
+  es la misma persona respondiendo otra vez.
+- Sin la hoja de Google, el bloqueo de «una vez por persona» solo funciona en el mismo equipo,
+  y la página de resultados no tiene de dónde leer los datos.
+
 ## Recibir las respuestas (Google Sheets)
 
 Sin configuración, la encuesta funciona en **modo demostración**: las respuestas solo se guardan en el navegador.
