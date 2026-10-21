@@ -43,7 +43,7 @@
     if (!jsPDF) return Promise.reject(new Error("No se cargó la herramienta de PDF."));
 
     return cargarImagen("assets/logo-adep.png").then(function (logo) {
-      var doc = new jsPDF({ unit: "mm", format: "a4" });
+      var doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
       doc.setProperties({ title: "Encuesta de Servicio ADEP", author: "ADEP", subject: "Respuesta de una persona asociada" });
       var y = 0;
 

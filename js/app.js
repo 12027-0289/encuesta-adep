@@ -465,30 +465,78 @@
     var crear = window.ADEP_PDF ? window.ADEP_PDF.crear(infoPDF(data)) : Promise.reject(new Error("sin PDF"));
     return crear.then(function (pdf) {
       var filial = String(data.filial || "").replace(/\s*\([^)]+\)$/, "");
-      var fd = new FormData();
-      fd.append("_subject", "Encuesta ADEP · Nueva respuesta · " + filial);
-      fd.append("_template", "box");
-      fd.append("_captcha", "false");
-      if (correos.length > 1) fd.append("_cc", correos.slice(1).join(","));
-      fd.append("Mensaje", "Se recibió una nueva respuesta de la Encuesta de Servicio de ADEP (filial " + filial +
-        "). La respuesta completa va en el PDF adjunto.");
+      var campos = {
+        _subject: "Encuesta ADEP · Nueva respuesta · " + filial,
+        _template: "box",
+        _captcha: "false",
+        Mensaje: "Se recibió una nueva respuesta de la Encuesta de Servicio de ADEP (filial " + filial +
+          "). La respuesta completa va en el PDF adjunto.",
+      };
+      if (correos.length > 1) campos._cc = correos.slice(1).join(",");
       var nombre = "Encuesta-ADEP-" + filial.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") +
         "-" + new Date().toISOString().slice(0, 10) + ".pdf";
-      fd.append("attachment", new File([pdf], nombre, { type: "application/pdf" }));
-      return fetch("https://formsubmit.co/ajax/" + encodeURIComponent(correos[0]), {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: fd,
-      }).then(function (r) { return r.json(); }).then(function (j) {
-        if (String(j.success) !== "true") {
-          console.warn("[ADEP] FormSubmit:", j.message);
-          throw new Error("correo");
-        }
-      });
+      var archivo = new File([pdf], nombre, { type: "application/pdf" });
+      // FormSubmit solo acepta adjuntos en el envío de formulario clásico (no por AJAX).
+      return enviarFormularioOculto("https://formsubmit.co/" + encodeURIComponent(correos[0]), campos, archivo);
     }, function (err) {
       // Si no se pudo crear el PDF, se envía la tabla para no perder la respuesta.
       console.warn("[ADEP] No se pudo crear el PDF; se envía como tabla.", err);
       return enviarTabla(data, correos);
+    });
+  }
+
+  // Envía un formulario clásico (con archivo) dentro de un marco oculto, para no salir de la encuesta.
+  // No se puede leer la respuesta de FormSubmit (es otro sitio); se da por enviado cuando el marco carga.
+  function enviarFormularioOculto(url, campos, archivo) {
+    return new Promise(function (resolve, reject) {
+      var nombre = "envio-correo-" + Date.now();
+      var marco = document.createElement("iframe");
+      marco.name = nombre;
+      marco.title = "Envío del correo";
+      marco.hidden = true;
+      document.body.appendChild(marco);
+
+      var form = document.createElement("form");
+      form.method = "POST";
+      form.action = url;
+      form.enctype = "multipart/form-data";
+      form.target = nombre;
+      form.hidden = true;
+      Object.keys(campos).forEach(function (k) {
+        var i = document.createElement("input");
+        i.type = "hidden";
+        i.name = k;
+        i.value = campos[k];
+        form.appendChild(i);
+      });
+      var adj = document.createElement("input");
+      adj.type = "file";
+      adj.name = "attachment";
+      var dt = new DataTransfer();
+      dt.items.add(archivo);
+      adj.files = dt.files;
+      form.appendChild(adj);
+      document.body.appendChild(form);
+
+      var terminado = false;
+      function limpiar() { setTimeout(function () { marco.remove(); form.remove(); }, 3000); }
+      var espera = setTimeout(function () {
+        if (terminado) return;
+        terminado = true;
+        limpiar();
+        reject(new Error("correo"));
+      }, 45000);
+      // El marco vacío puede disparar "load" al insertarse: se escucha después de esa vuelta.
+      setTimeout(function () {
+        marco.addEventListener("load", function () {
+          if (terminado) return;
+          terminado = true;
+          clearTimeout(espera);
+          limpiar();
+          resolve();
+        });
+        form.submit();
+      }, 0);
     });
   }
 
