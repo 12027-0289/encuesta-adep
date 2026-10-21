@@ -5,7 +5,7 @@
 window.ADEP_CONFIG = {
   // URL de la aplicación web de Google Apps Script (ver google-apps-script/Code.gs).
   // Si se deja vacío, las respuestas se guardan solo en este navegador (modo demostración).
-  endpoint: "",
+  endpoint: "https://script.google.com/macros/s/AKfycbzYgklW4Vy3jI-LWvS7mqh1js6-tWWs-rWgeQd7jfEsI4UDWX-EsU6vTSDDx0TyiFU3/exec",
 
   // Solo se usa mientras "endpoint" esté vacío: correos que reciben cada respuesta por FormSubmit.co.
   // Cuando se conecta la hoja de Google, los correos se configuran en Google (propiedad CORREOS)
