@@ -64,10 +64,12 @@ correos: ["primer-correo@ejemplo.com", "segundo-correo@ejemplo.com"],
 - Sin la hoja de Google, el bloqueo de «una vez por persona» solo funciona en el mismo equipo,
   y la página de resultados no tiene de dónde leer los datos.
 
-## Recibir las respuestas (Google Sheets)
+## Recibir las respuestas (Google Sheets + Gmail de ADEP)
 
-Sin configuración, la encuesta funciona en **modo demostración**: las respuestas solo se guardan en el navegador.
-Para recibirlas en una hoja de cálculo de Google, siga **[INSTALAR-BACKEND.md](INSTALAR-BACKEND.md)**.
+Al conectar la cuenta de Gmail de ADEP (guía: **[INSTALAR-BACKEND.md](INSTALAR-BACKEND.md)**), cada respuesta
+se guarda en una hoja de Google y llega un correo **desde esa cuenta** con dos PDF: la respuesta de la persona y el
+**informe general** con gráficos y porcentajes de todas las respuestas. Los correos que reciben se configuran en
+Google (propiedad `CORREOS`). Mientras `endpoint` esté vacío, se usa FormSubmit (solo el PDF individual).
 
 ## Página de resultados
 

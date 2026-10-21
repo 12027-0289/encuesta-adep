@@ -7,9 +7,9 @@ window.ADEP_CONFIG = {
   // Si se deja vacío, las respuestas se guardan solo en este navegador (modo demostración).
   endpoint: "",
 
-  // Correos que reciben cada respuesta (servicio gratuito FormSubmit.co).
-  // El primero es el destinatario principal; los demás reciben copia.
-  // La primera vez, FormSubmit envía un correo de activación al primero: hay que confirmarlo.
+  // Solo se usa mientras "endpoint" esté vacío: correos que reciben cada respuesta por FormSubmit.co.
+  // Cuando se conecta la hoja de Google, los correos se configuran en Google (propiedad CORREOS)
+  // y el correo sale desde la cuenta de ADEP con los dos PDF.
   correos: ["abigail.av2006@gmail.com"],
 
   // Texto que se mezcla con la cédula antes de cifrarla (SHA-256). Cámbielo una sola vez

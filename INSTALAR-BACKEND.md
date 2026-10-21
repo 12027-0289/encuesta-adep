@@ -1,71 +1,100 @@
-# Conectar la encuesta con Google Sheets
+# Conectar la encuesta con la cuenta de Gmail de ADEP
 
-Con estos pasos, cada respuesta de la encuesta llega como una fila nueva a una hoja de cálculo de Google, cada cédula puede responder una sola vez (desde cualquier equipo) y la página `resultados.html` muestra los gráficos.
+Con estos pasos, cada vez que alguien responde la encuesta:
 
-Se hace **una sola vez** y toma unos 10 minutos. Use una cuenta de Google de ADEP, no una personal.
+1. La respuesta se guarda en una hoja de cálculo de Google.
+2. Llega un correo, **enviado desde la cuenta de ADEP**, con **dos PDF**:
+   la respuesta de la persona y el **informe general** con gráficos y porcentajes de todas las respuestas.
+3. Cada cédula puede responder **una sola vez**, desde cualquier equipo.
+
+Además funciona la página `resultados.html` para ver los resultados en pantalla.
+
+Se hace **una sola vez** (unos 15 minutos), con la cuenta de Gmail de ADEP.
+
+---
 
 ## 1. Crear la hoja de cálculo
 
-1. Entre a <https://sheets.google.com> con la cuenta de ADEP.
-2. Cree una hoja en blanco y póngale de nombre **Encuesta de Servicio ADEP**.
-   No hace falta escribir nada; las columnas se crean solas con la primera respuesta.
+1. Entre a <https://sheets.google.com> con la cuenta de Gmail de ADEP.
+2. Presione **En blanco** para crear una hoja nueva.
+3. Arriba a la izquierda, cambie el nombre "Hoja de cálculo sin título" por **Encuesta de Servicio ADEP**.
 
-## 2. Pegar el script
+No escriba nada en la hoja: las columnas se crean solas con la primera respuesta.
 
-1. En la hoja, abra el menú **Extensiones → Apps Script**.
-2. Borre todo lo que aparece en el editor.
-3. Copie todo el contenido del archivo `google-apps-script/Code.gs` de este proyecto y péguelo.
+## 2. Pegar el código
+
+1. En la hoja, abra el menú **Extensiones → Apps Script**. Se abre otra pestaña.
+2. Borre todo lo que aparece escrito en el editor.
+3. Abra el archivo `google-apps-script/Code.gs` de este proyecto, copie **todo** su contenido y péguelo en el editor.
 4. Presione el ícono de **guardar** (💾).
 
-## 3. Poner la clave de los resultados
+## 3. Poner la clave y los correos
 
-La clave protege la página de resultados. No se escribe en el código, sino aquí:
+1. En Apps Script, en la barra de la izquierda, entre a **Configuración del proyecto** (ícono ⚙️).
+2. Baje hasta **Propiedades de la secuencia de comandos** y presione **Agregar propiedad de secuencia de comandos**.
+3. Agregue estas dos propiedades (escriba los nombres exactamente así, en mayúsculas):
 
-1. En Apps Script, en la barra izquierda, entre a **Configuración del proyecto** (⚙️).
-2. Baje hasta **Propiedades de la secuencia de comandos** y presione **Agregar propiedad**.
-3. En **Propiedad** escriba exactamente: `CLAVE_RESULTADOS`
-4. En **Valor** escriba la clave que usará la Junta Directiva. Use al menos 10 caracteres y no la comparta por redes sociales.
-5. Presione **Guardar propiedades de la secuencia de comandos**.
+   | Propiedad | Valor |
+   |---|---|
+   | `CORREOS` | Los correos que reciben los resultados, separados por coma. Ejemplo: `persona1@correo.com, persona2@correo.com` |
+   | `CLAVE_RESULTADOS` | Una clave de al menos 10 caracteres para la página de resultados |
 
-## 4. Publicar el script como aplicación web
+4. Presione **Guardar propiedades de la secuencia de comandos**.
+
+Para cambiar los correos más adelante, solo se edita la propiedad `CORREOS`; no hay que cambiar nada más.
+
+## 4. Probar el envío de correo (y dar permisos)
+
+1. Vuelva al **Editor** (ícono `< >` a la izquierda).
+2. Arriba, junto al botón **Ejecutar**, elija la función **probarCorreo** y presione **Ejecutar**.
+3. Google pedirá **revisar permisos**: elija la cuenta de ADEP.
+   Si aparece "Google no ha verificado esta aplicación", presione **Configuración avanzada → Ir a … (no seguro)** y luego **Permitir**.
+   Es normal: el código es de ADEP y solo usa esta hoja y el correo de esta cuenta.
+4. Revise los correos de la lista: debe llegar "Encuesta ADEP · Prueba del informe" con un PDF (todavía vacío, con 0 respuestas).
+
+## 5. Publicar como aplicación web
 
 1. Arriba a la derecha presione **Implementar → Nueva implementación**.
-2. En el engranaje junto a "Seleccionar tipo", elija **Aplicación web**.
+2. Presione el engranaje ⚙️ junto a "Seleccionar tipo" y elija **Aplicación web**.
 3. Llene así:
    - **Descripción:** Encuesta ADEP
    - **Ejecutar como:** Yo (la cuenta de ADEP)
    - **Quién tiene acceso:** Cualquier usuario
-4. Presione **Implementar**.
-5. Google pedirá **autorizar el acceso**: elija la cuenta de ADEP. Si aparece "Google no ha verificado esta aplicación", presione **Configuración avanzada → Ir a Encuesta ADEP (no seguro)** y luego **Permitir**. Es normal: el script es suyo y solo usa esta hoja.
-6. Copie la **URL de la aplicación web**. Termina en `/exec`.
+4. Presione **Implementar** y copie la **URL de la aplicación web** (termina en `/exec`).
 
-> "Cualquier usuario" es necesario para que las personas asociadas puedan enviar la encuesta sin iniciar sesión en Google. Aun así, nadie puede leer las respuestas sin la clave del paso 3, y nadie puede abrir la hoja sin la cuenta de ADEP.
+> "Cualquier usuario" es necesario para que las personas asociadas puedan enviar la encuesta sin iniciar sesión.
+> Nadie puede leer las respuestas sin la clave del paso 3, ni abrir la hoja sin la cuenta de ADEP.
 
-## 5. Conectar la encuesta
+## 6. Conectar la encuesta
 
-1. Abra `js/config.js` y pegue la URL entre las comillas de `endpoint`:
+En `js/config.js`, pegue la URL entre las comillas de `endpoint`:
 
-   ```js
-   endpoint: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec",
-   ```
+```js
+endpoint: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec",
+```
 
-2. Revise el valor de `sal`. Si quiere, cámbielo por cualquier otra frase, **pero hágalo antes de que alguien responda** y no lo vuelva a cambiar después.
-3. Guarde, haga commit y súbalo a GitHub (`git push`).
+Guarde, haga commit y súbalo a GitHub (`git push`). Desde ese momento los correos salen desde la cuenta de ADEP
+con los dos PDF, y ya no se usa FormSubmit.
 
-## 6. Probar
+## 7. Prueba final
 
-1. Abra la encuesta publicada y respóndala con una cédula de prueba.
-2. Revise la hoja: debe aparecer la pestaña **Respuestas** con una fila.
-3. Intente responder otra vez con la misma cédula: debe decir que ya respondió.
-4. Abra `resultados.html`, escriba la clave y revise los gráficos.
+1. Responda la encuesta con una cédula de prueba.
+2. Revise la hoja: aparece la pestaña **Respuestas** con una fila.
+3. Revise el correo: deben llegar los dos PDF.
+4. Intente responder otra vez con la misma cédula: debe decir que ya respondió.
 5. Borre la fila de prueba de la hoja antes de compartir la encuesta.
 
-## Si cambia el script más adelante
+---
 
-Después de pegar una versión nueva de `Code.gs`, vaya a **Implementar → Gestionar implementaciones**, presione el lápiz ✏️, elija **Versión: Nueva versión** y luego **Implementar**. Así la URL sigue siendo la misma.
+## Bueno saber
 
-## Qué guarda cada fila
-
-- Las respuestas de las 14 preguntas.
-- La fecha y hora, que pone el servidor de Google.
-- `id_persona`: la cédula **cifrada**. Sirve solo para detectar respuestas repetidas; la página de resultados nunca la muestra.
+- **Límite de correos:** una cuenta Gmail gratuita puede enviar a unas **100 direcciones por día**.
+  Con 2 correos en la lista, alcanza para unas **50 respuestas diarias**. Si se pasa del límite,
+  las respuestas **igual se guardan** en la hoja; solo deja de llegar el correo hasta el día siguiente.
+- **Si cambia el código más adelante:** después de pegar la versión nueva, vaya a
+  **Implementar → Gestionar implementaciones**, presione el lápiz ✏️, elija **Versión: Nueva versión** e **Implementar**.
+  Así la URL sigue siendo la misma.
+- **Qué guarda cada fila:** las respuestas, la fecha y hora (la pone Google) y `id_persona`, que es la cédula
+  **cifrada**: sirve solo para detectar respuestas repetidas. No se muestra en los resultados; en el PDF individual
+  aparece solo un pedazo («Código de persona»), que no permite saber la cédula.
+- **Quién debe tener la clave de la cuenta:** la jefatura o administración de ADEP, no una sola persona.

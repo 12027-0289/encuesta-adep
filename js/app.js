@@ -428,6 +428,24 @@
     ["nuevos_beneficios", "13. Nuevos beneficios"],
     ["recomendaciones", "14. Recomendaciones"],
   ];
+  // PDF individual en base64 para enviarlo a Google junto con la respuesta.
+  function nombrePDF(data) {
+    var filial = String(data.filial || "").replace(/\s*\([^)]+\)$/, "");
+    return "Encuesta-ADEP-" + filial.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") +
+      "-" + new Date().toISOString().slice(0, 10) + ".pdf";
+  }
+  function pdfBase64(data) {
+    if (!window.ADEP_PDF) return Promise.resolve(null);
+    return window.ADEP_PDF.crear(infoPDF(data)).then(function (blob) {
+      return new Promise(function (ok) {
+        var fr = new FileReader();
+        fr.onload = function () { ok({ base64: String(fr.result).split(",")[1], nombre: nombrePDF(data) }); };
+        fr.onerror = function () { ok(null); };
+        fr.readAsDataURL(blob);
+      });
+    }).catch(function () { return null; });
+  }
+
   // Datos para el PDF, tomados de las preguntas tal como se ven en pantalla.
   var COLORES_SECCION = ["#008744", "#0d8a7a", "#b8860b", "#c8322e", "#04492a"];
   function infoPDF(data) {
@@ -473,8 +491,7 @@
           "). La respuesta completa va en el PDF adjunto.",
       };
       if (correos.length > 1) campos._cc = correos.slice(1).join(",");
-      var nombre = "Encuesta-ADEP-" + filial.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") +
-        "-" + new Date().toISOString().slice(0, 10) + ".pdf";
+      var nombre = nombrePDF(data);
       var archivo = new File([pdf], nombre, { type: "application/pdf" });
       // FormSubmit solo acepta adjuntos en el envío de formulario clásico (no por AJAX).
       return enviarFormularioOculto("https://formsubmit.co/" + encodeURIComponent(correos[0]), campos, archivo);
@@ -601,12 +618,20 @@
     var data = collect();
     data.id_persona = idPersona;
 
+    // Con la hoja de Google conectada, Google guarda la respuesta y envía el correo con los dos PDF.
+    // Sin ella, el correo sale por FormSubmit (solo con el PDF individual) y queda una copia local.
     var correos = (cfg.correos || []).filter(Boolean);
-    var envios = Promise.resolve();
-    if (cfg.endpoint) envios = envios.then(function () { return enviarHoja(data); });
-    if (correos.length) envios = envios.then(function () { return enviarCorreo(data, correos); });
-    if (!cfg.endpoint) envios = envios.then(function () { return guardarLocal(data); });
-    var send = envios;
+    var send;
+    if (cfg.endpoint) {
+      send = pdfBase64(data).then(function (pdf) {
+        var envio = Object.assign({}, data);
+        if (pdf) { envio.pdf_base64 = pdf.base64; envio.pdf_nombre = pdf.nombre; }
+        return enviarHoja(envio);
+      });
+    } else {
+      send = (correos.length ? enviarCorreo(data, correos) : Promise.resolve())
+        .then(function () { return guardarLocal(data); });
+    }
 
     send.then(function () {
       guardarIdLocal(idPersona);
