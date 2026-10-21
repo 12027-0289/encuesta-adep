@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resultados de la Encuesta | ADEP</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#006b35">
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/resultados.css">
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+
+  <header class="app-header">
+    <div class="head-in">
+      <div class="marca">
+        <img class="logo" src="assets/logo-adep.png" alt="Logo de ADEP" width="48" height="48">
+        <div>
+          <strong>ADEP</strong>
+          <span>Resultados de la encuesta</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sec salir" id="salir" hidden><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+    </div>
+  </header>
+
+  <main id="main" class="res">
+    <!-- Ingreso -->
+    <section id="ingreso" class="res-ingreso">
+      <div class="card">
+        <span class="res-ico"><i class="fa-solid fa-lock"></i></span>
+        <h1>Resultados de la Encuesta de Servicio</h1>
+        <p>Página para la Junta Directiva y la administración. Escriba la clave de resultados.</p>
+        <form id="form-clave" class="ing-fila">
+          <input class="text" type="password" id="clave" autocomplete="current-password" placeholder="Clave de resultados" aria-label="Clave de resultados">
+          <button type="submit" class="btn btn-green" id="entrar"><i class="fa-solid fa-chart-column"></i> Ver resultados</button>
+        </form>
+        <p class="ing-error" id="clave-error" role="alert"></p>
+        <p class="res-demo" id="aviso-demo" hidden>
+          <i class="fa-solid fa-circle-info"></i>
+          Modo demostración: la encuesta aún no está conectada a Google Sheets, así que aquí solo se ven
+          las respuestas enviadas desde este mismo navegador. No se pide clave.
+        </p>
+      </div>
+    </section>
+
+    <!-- Tablero -->
+    <section id="tablero" hidden>
+      <div class="res-cab">
+        <div>
+          <h1>Resultados de la Encuesta de Servicio</h1>
+          <p id="res-actualizado">—</p>
+        </div>
+        <div class="res-acciones">
+          <button type="button" class="btn btn-sec" id="actualizar"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+          <button type="button" class="btn btn-green" id="excel"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
+        </div>
+      </div>
+
+      <div class="res-filtros" role="group" aria-label="Filtros">
+        <label>
+          <span>Provincia</span>
+          <select class="text" id="f-provincia"><option value="">Todas</option></select>
+        </label>
+        <label>
+          <span>Filial o núcleo</span>
+          <select class="text" id="f-filial"><option value="">Todas</option></select>
+        </label>
+        <label>
+          <span>Edad</span>
+          <select class="text" id="f-edad"><option value="">Todas</option></select>
+        </label>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="res-vacio card" id="vacio" hidden>
+        <i class="fa-regular fa-folder-open"></i>
+        <p>Todavía no hay respuestas con estos filtros.</p>
+      </div>
+
+      <div class="graficos" id="graficos"></div>
+
+      <h2 class="res-sub"><i class="fa-solid fa-comments"></i> Comentarios de las personas asociadas</h2>
+      <div class="comentarios card">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <input class="text buscar" type="search" id="buscar" placeholder="Buscar en los comentarios…" aria-label="Buscar en los comentarios">
+        <ul class="lista-com" id="lista-com"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p class="lema">Comprensión · Fraternidad · Cooperación</p>
+    <p>© <span id="year"></span> ADEP · Asociación de Educadores Pensionados</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/resultados.js"></script>
+</body>
+</html>

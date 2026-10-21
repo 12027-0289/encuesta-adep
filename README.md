@@ -19,8 +19,11 @@ index.html                 Página principal
 css/styles.css             Estilos y paleta de colores (variables en :root)
 js/config.js               Servicios, aspectos a calificar y URL de envío
 js/app.js                  Lógica del formulario
+resultados.html            Resultados para la Junta Directiva (con clave)
+js/resultados.js           Gráficos, filtros, comentarios y descarga a Excel
+css/resultados.css         Estilos de la página de resultados
 assets/                    Logo oficial y favicon
-google-apps-script/Code.gs Script para recibir respuestas en Google Sheets
+google-apps-script/Code.gs Backend: guarda respuestas en Google Sheets y entrega resultados
 ```
 
 ## Abrir en Visual Studio Code
@@ -43,11 +46,14 @@ Necesita que la página se abra por `https` (GitHub Pages) o desde Live Server.
 ## Recibir las respuestas (Google Sheets)
 
 Sin configuración, la encuesta funciona en **modo demostración**: las respuestas solo se guardan en el navegador.
-Para recibirlas en una hoja de cálculo, siga las instrucciones de `google-apps-script/Code.gs` y pegue la URL resultante en `js/config.js`:
+Para recibirlas en una hoja de cálculo de Google, siga **[INSTALAR-BACKEND.md](INSTALAR-BACKEND.md)**.
 
-```js
-endpoint: "https://script.google.com/macros/s/XXXXXXXX/exec",
-```
+## Página de resultados
+
+`resultados.html` muestra los resultados para la Junta Directiva: cifras principales, gráficos por pregunta,
+filtros por provincia, filial y edad, los comentarios con buscador y la descarga a Excel.
+Pide la clave que se configura en Google (`CLAVE_RESULTADOS`). No hay ningún enlace a esta página
+desde la encuesta; compártala solo con quien deba verla.
 
 ## Personalizar
 
