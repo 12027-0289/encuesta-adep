@@ -85,6 +85,10 @@ desde la encuesta; compártala solo con quien deba verla.
 - **Servicios (preguntas 4 y 5) y aspectos (pregunta 7):** listas en `js/config.js`.
 - **Logo:** `assets/logo-adep.png` (logo oficial, recortado en círculo) y `assets/favicon.png`.
 
-## Publicar en GitHub Pages
+## Dónde está publicada
 
-En el repositorio: **Settings → Pages → Source: Deploy from a branch → `main` / root**.
+- Encuesta: **https://adep-encuesta.web.app**
+- Resultados (solo organizadores, con clave): **https://adep-encuesta.web.app/resultados**
+
+Cada cambio que se sube a `main` se publica solo en Firebase Hosting (proyecto `adep-encuesta`, de la
+cuenta de Gmail de ADEP). Vea **[PUBLICAR.md](PUBLICAR.md)**.

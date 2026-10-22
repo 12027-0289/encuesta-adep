@@ -2,11 +2,9 @@
 # Necesita el secreto FIREBASE_SERVICE_ACCOUNT (vea PUBLICAR.md).
 name: Publicar página
 
-# En pausa: solo se ejecuta a mano (Actions → Publicar página → Run workflow).
-# Cuando el secreto FIREBASE_SERVICE_ACCOUNT esté listo, agregue de nuevo:
-#   push:
-#     branches: [main]
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:

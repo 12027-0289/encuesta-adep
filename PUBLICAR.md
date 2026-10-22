@@ -1,5 +1,7 @@
 # Publicar la encuesta en Firebase (dirección adep-encuesta.web.app)
 
+> ✅ Configurado el 22/10/2026 con la cuenta de Gmail de ADEP. Esta guía queda como referencia.
+
 Cada vez que se sube un cambio a `main`, GitHub publica la encuesta en **https://adep-encuesta.web.app**
 (y la página de resultados en **https://adep-encuesta.web.app/resultados**).
 
@@ -23,9 +25,19 @@ Se configura **una sola vez**, con la **cuenta de Gmail de ADEP** (no con una cu
    ⚠️ Esa llave es secreta: no la suba a GitHub como archivo ni la comparta.
 
 ## 4. Darle permiso para publicar
-1. Abra <https://console.cloud.google.com/iam-admin/iam?project=adep-encuesta> (con la cuenta de ADEP).
-2. Busque la cuenta que empieza con **firebase-adminsdk-** y presione el lápiz ✏️ (Editar).
-3. **Agregar otro rol** → escriba **Firebase Hosting** → elija **Administrador de Firebase Hosting** → **Guardar**.
+1. Active el servicio de Hosting: abra
+   <https://console.cloud.google.com/apis/library/firebasehosting.googleapis.com?project=adep-encuesta>
+   y, si aparece, presione **Habilitar**.
+2. Abra <https://console.cloud.google.com/iam-admin/iam?project=adep-encuesta> (con la cuenta de ADEP).
+3. Busque la cuenta que empieza con **firebase-adminsdk-** y presione el lápiz ✏️ (Editar).
+4. Con **Agregar otro rol**, agregue estos cuatro y presione **Guardar**:
+   - **Administrador de Firebase Hosting**
+   - **Visualizador de claves de API**
+   - **Usuario de cuenta de servicio**
+   - **Consumidor de Service Usage**
+5. Espere unos 5 minutos antes de publicar: Google tarda en activar los permisos.
+
+Si la publicación falla con `"statusCode": 403`, casi siempre falta uno de estos pasos.
 
 ## 5. Guardar la llave en GitHub
 1. Abra <https://github.com/12027-0289/encuesta-adep/settings/secrets/actions>.
