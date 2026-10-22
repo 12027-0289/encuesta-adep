@@ -92,6 +92,8 @@ con los dos PDF, y ya no se usa FormSubmit.
 - **Límite de correos:** una cuenta Gmail gratuita puede enviar a unas **100 direcciones por día**.
   Con 2 correos en la lista, alcanza para unas **50 respuestas diarias**. Si se pasa del límite,
   las respuestas **igual se guardan** en la hoja; solo deja de llegar el correo hasta el día siguiente.
+  Para que lleguen todos, los correos pueden salir desde **Microsoft 365** (unos 10 000 por día):
+  vea [ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md).
 - **Si cambia el código más adelante:** después de pegar la versión nueva, vaya a
   **Implementar → Gestionar implementaciones**, presione el lápiz ✏️, elija **Versión: Nueva versión** e **Implementar**.
   Así la URL sigue siendo la misma.

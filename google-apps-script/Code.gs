@@ -13,6 +13,13 @@
  * (Configuración del proyecto > Propiedades de la secuencia de comandos):
  *   CLAVE_RESULTADOS  clave de la página de resultados
  *   CORREOS           correos que reciben los resultados, separados por coma
+ * Opcional, para enviar los correos desde Microsoft 365 (unos 10 000 destinatarios por día
+ * en vez de unos 100 de Gmail). Vea ENVIAR-CON-MICROSOFT.md:
+ *   MS_TENANT         Id. de directorio (inquilino) de Microsoft
+ *   MS_CLIENT_ID      Id. de aplicación (cliente)
+ *   MS_SECRET         valor del secreto de cliente
+ *   MS_REMITENTE      correo de Microsoft 365 desde el que salen los resultados
+ * Si faltan, o si Microsoft falla, el correo sale desde esta cuenta de Gmail.
  */
 var HOJA = "Respuestas";
 var COLUMNA_ID = "id_persona";
@@ -147,7 +154,6 @@ function guardar_(data) {
 function enviarCorreo_(data, sheet) {
   var para = correos_();
   if (!para.length) { console.warn("No hay correos en la propiedad CORREOS."); return false; }
-  if (MailApp.getRemainingDailyQuota() < para.length) { console.warn("Se agotó el límite diario de correos."); return false; }
 
   var filas = filas_(sheet);
   var R = resumen_(filas);
@@ -163,14 +169,65 @@ function enviarCorreo_(data, sheet) {
   adjuntos.push(informe);
 
   var filial = String(data.filial || "").replace(/\s*\([^)]+\)\s*$/, "");
-  MailApp.sendEmail({
-    to: para.join(","),
-    subject: "Encuesta ADEP · Nueva respuesta · " + filial + " · " + R.N + " en total",
-    htmlBody: htmlCorreo_(filial, R),
-    attachments: adjuntos,
-    name: "Encuesta de Servicio ADEP",
-  });
+  return enviar_(para, "Encuesta ADEP · Nueva respuesta · " + filial + " · " + R.N + " en total",
+    htmlCorreo_(filial, R), adjuntos);
+}
+
+// Envía por Microsoft 365 si está configurado; si no (o si falla), por Gmail.
+function enviar_(para, asunto, html, adjuntos) {
+  if (microsoft_()) {
+    try { enviarMicrosoft_(para, asunto, html, adjuntos); return true; }
+    catch (err) { console.error("Microsoft: " + err + " · Se intenta con Gmail."); }
+  }
+  if (MailApp.getRemainingDailyQuota() < para.length) { console.warn("Se agotó el límite diario de correos de Gmail."); return false; }
+  MailApp.sendEmail({ to: para.join(","), subject: asunto, htmlBody: html, attachments: adjuntos, name: "Encuesta de Servicio ADEP" });
   return true;
+}
+
+/* ======================= Envío por Microsoft 365 (Microsoft Graph) ======================= */
+function microsoft_() {
+  var c = { tenant: propiedad_("MS_TENANT"), id: propiedad_("MS_CLIENT_ID"), secreto: propiedad_("MS_SECRET"), remitente: propiedad_("MS_REMITENTE") };
+  return c.tenant && c.id && c.secreto && c.remitente ? c : null;
+}
+
+function tokenMicrosoft_(c) {
+  var cache = CacheService.getScriptCache();
+  var guardado = cache.get("ms_token");
+  if (guardado) return guardado;
+  var r = UrlFetchApp.fetch("https://login.microsoftonline.com/" + encodeURIComponent(c.tenant.trim()) + "/oauth2/v2.0/token", {
+    method: "post",
+    payload: { grant_type: "client_credentials", client_id: c.id.trim(), client_secret: c.secreto.trim(), scope: "https://graph.microsoft.com/.default" },
+    muteHttpExceptions: true,
+  });
+  var j = JSON.parse(r.getContentText() || "{}");
+  if (r.getResponseCode() !== 200 || !j.access_token) {
+    throw new Error("No se pudo entrar a Microsoft (" + r.getResponseCode() + "): " + (j.error_description || j.error || r.getContentText()).slice(0, 300));
+  }
+  cache.put("ms_token", j.access_token, Math.max(60, Math.min(21600, (j.expires_in || 3600) - 300)));
+  return j.access_token;
+}
+
+function enviarMicrosoft_(para, asunto, html, adjuntos) {
+  var c = microsoft_();
+  var mensaje = {
+    subject: asunto,
+    body: { contentType: "HTML", content: html },
+    toRecipients: para.map(function (d) { return { emailAddress: { address: d } }; }),
+    attachments: (adjuntos || []).map(function (b) {
+      return { "@odata.type": "#microsoft.graph.fileAttachment", name: b.getName(), contentType: b.getContentType(), contentBytes: Utilities.base64Encode(b.getBytes()) };
+    }),
+  };
+  var r = UrlFetchApp.fetch("https://graph.microsoft.com/v1.0/users/" + encodeURIComponent(c.remitente.trim()) + "/sendMail", {
+    method: "post",
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + tokenMicrosoft_(c) },
+    payload: JSON.stringify({ message: mensaje, saveToSentItems: true }),
+    muteHttpExceptions: true,
+  });
+  if (r.getResponseCode() !== 202) {
+    if (r.getResponseCode() === 401) CacheService.getScriptCache().remove("ms_token");
+    throw new Error("Microsoft no envió el correo (" + r.getResponseCode() + "): " + r.getContentText().slice(0, 300));
+  }
 }
 
 // Valida un PDF enviado en base64 por la encuesta.
@@ -401,18 +458,22 @@ function htmlCorreo_(filial, R) {
 
 /* Prueba manual: en el editor elija "probarCorreo" y presione Ejecutar.
    Envía un correo corto a CORREOS para confirmar que el envío funciona.
+   Si Microsoft 365 está configurado, la prueba sale por Microsoft y muestra el error si algo falta.
    (El informe general con gráficos lo arma la encuesta y llega con cada respuesta.) */
 function probarCorreo() {
   var para = correos_();
   if (!para.length) throw new Error("Agregue la propiedad CORREOS (Configuración del proyecto).");
   var R = resumen_(filas_(hoja_()));
-  MailApp.sendEmail({
-    to: para.join(","),
-    subject: "Encuesta ADEP · Prueba de envío",
-    htmlBody: htmlCorreo_("(prueba)", R).replace("Nueva respuesta recibida", "Prueba de envío")
-      .replace(/<p>Adjuntos:[\s\S]*?<\/ul>/, "<p>Si recibió este correo, el envío funciona. Con cada respuesta llegarán dos PDF: la respuesta y el informe general con gráficos.</p>"),
-    name: "Encuesta de Servicio ADEP",
-  });
+  var asunto = "Encuesta ADEP · Prueba de envío";
+  var html = htmlCorreo_("(prueba)", R).replace("Nueva respuesta recibida", "Prueba de envío")
+    .replace(/<p>Adjuntos:[\s\S]*?<\/ul>/, "<p>Si recibió este correo, el envío funciona. Con cada respuesta llegarán dos PDF: la respuesta y el informe general con gráficos.</p>");
+  if (microsoft_()) {
+    enviarMicrosoft_(para, asunto, html, []);
+    console.log("Listo: la prueba salió por Microsoft 365 desde " + microsoft_().remitente);
+  } else {
+    MailApp.sendEmail({ to: para.join(","), subject: asunto, htmlBody: html, name: "Encuesta de Servicio ADEP" });
+    console.log("Listo: la prueba salió por Gmail (Microsoft 365 no está configurado).");
+  }
 }
 
 /* Logo de ADEP para el informe (imagen pequeña en base64). */
