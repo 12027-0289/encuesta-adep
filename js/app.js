@@ -93,21 +93,7 @@
   buildMatrix(satMatrix, "sat", cfg.servicios);
   buildMatrix(aspMatrix, "asp", cfg.aspectos);
 
-  // En la pregunta 5 solo se califican los servicios marcados en la pregunta 4.
-  // Si se marca "Ninguno", la pregunta 5 no aplica.
-  function syncSatisfaction() {
-    var used = $$('input[name="servicios"]:checked').map(function (i) { return i.value; });
-    var ninguno = NINGUNO && used.indexOf(NINGUNO) !== -1;
-    var rows = $$(".m-row", satMatrix);
-    rows.forEach(function (row) {
-      var show = !ninguno && (used.length === 0 || used.indexOf(row.dataset.label) !== -1);
-      row.hidden = !show;
-      if (!show) $$("input", row).forEach(function (i) { i.checked = false; });
-    });
-    var noAplica = $("#sat-no-aplica");
-    if (noAplica) noAplica.hidden = !ninguno;
-    $(".scale-legend", satMatrix).hidden = ninguno;
-  }
+  // Como en el formulario original, la pregunta 5 pide calificar siempre todos los servicios.
   // "Ninguno" no se puede marcar junto con otros servicios.
   servWrap.addEventListener("change", function (e) {
     if (NINGUNO && e.target.name === "servicios" && e.target.checked) {
@@ -115,7 +101,6 @@
         if (i !== e.target && (e.target.value === NINGUNO || i.value === NINGUNO)) i.checked = false;
       });
     }
-    syncSatisfaction();
   });
 
   /* ---------- Progreso ---------- */
@@ -309,7 +294,6 @@
           el.value = v;
         }
       });
-      syncSatisfaction();
       syncFilial();
       return Math.min(state.step || 0, steps.length - 1);
     } catch (e) { return 0; }
@@ -363,7 +347,7 @@
     var matrix = $(".matrix", q);
     if (matrix) {
       var filas = $$(".m-row", matrix).filter(function (r) { return !r.hidden && $("input:checked", r); });
-      if (!filas.length) return $$(".m-row", matrix).every(function (r) { return r.hidden; }) ? "No aplica (no ha utilizado servicios)" : "";
+      if (!filas.length) return "";
       return filas.map(function (r) {
         var v = +$("input:checked", r).value;
         return '<span class="rp-fila">' + escapar(r.dataset.label) + ' <span class="rp-nota" data-v="' + v + '">' + v + " · " + NIVELES[v] + "</span></span>";
@@ -497,7 +481,6 @@
             if (matrix) {
               p.filas = $$(".m-row", matrix).filter(function (r) { return !r.hidden && $("input:checked", r); })
                 .map(function (r) { return { et: r.dataset.label, v: +$("input:checked", r).value }; });
-              p.noAplica = $$(".m-row", matrix).every(function (r) { return r.hidden; });
               return p;
             }
             var sel = $("select", q), txt = $("textarea", q);

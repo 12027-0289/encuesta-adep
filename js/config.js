@@ -122,7 +122,7 @@ window.ADEP_CONFIG = {
     "Asesoría y Orientación en Materia de Pensiones",
     "Revista ECOS de ADEP",
   ],
-  // Opción de la pregunta 4 que excluye a las demás; si se marca, la pregunta 5 no aplica.
+  // Opción de la pregunta 4 que excluye a las demás (la pregunta 5 igual pide calificar todos).
   ninguno: "Ninguno",
 
   // Filas de la pregunta 7 (del formulario oficial).
