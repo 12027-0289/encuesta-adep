@@ -71,6 +71,7 @@ Al conectar la cuenta de Gmail de ADEP (guía: **[INSTALAR-BACKEND.md](INSTALAR-
 se guarda en una hoja de Google y llega un correo **desde esa cuenta** con dos PDF: la respuesta de la persona y el
 **informe general** con gráficos y porcentajes de todas las respuestas. Los correos que reciben se configuran en
 Google (propiedad `CORREOS`). Mientras `endpoint` esté vacío, se usa FormSubmit (solo el PDF individual).
+Para que los correos salgan desde Microsoft 365 (sin el límite de Gmail), vea **[ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md)**.
 
 ## Página de resultados
 
