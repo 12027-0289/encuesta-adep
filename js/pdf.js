@@ -149,7 +149,7 @@
 
           if (p.filas) {
             if (!p.filas.length) {
-              fuente("italic", 10, SUAVE); doc.text("Sin respuesta", M + 11, y + 3); y += 8;
+              fuente("italic", 10, SUAVE); doc.text(p.noAplica ? "No aplica (no ha utilizado servicios)" : "Sin respuesta", M + 11, y + 3); y += 8;
             }
             p.filas.forEach(function (f, fi) {
               var el = lineas(f.et, 82);

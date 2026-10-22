@@ -312,7 +312,8 @@
         if (R.satisfaccion.length > 1) destacados.push("Servicio con la nota más baja: " + peor.et + " (" + decimal(peor.prom) + " de 5).");
       }
       if (R.aspectos.length) destacados.push("Aspecto mejor valorado de ADEP: " + R.aspectos[0].et + " (" + decimal(R.aspectos[0].prom) + " de 5).");
-      if (R.servicios.length) destacados.push("Servicio más usado: " + R.servicios[0].et + " (" + pct(R.servicios[0].n, R.N) + "% de las personas).");
+      var usados = R.servicios.filter(function (d) { return d.et !== cfg.ninguno; });
+      if (usados.length) destacados.push("Servicio más usado: " + usados[0].et + " (" + pct(usados[0].n, R.N) + "% de las personas).");
       if (R.canales.length) destacados.push("Canal de comunicación más usado: " + R.canales[0].et + " (" + pct(R.canales[0].n, R.N) + "%).");
       if (R.redes.length) destacados.push("Red social más usada: " + R.redes[0].et + " (" + pct(R.redes[0].n, R.N) + "%).");
       var hDest = 12 + destacados.length * 6.3;
@@ -343,7 +344,7 @@
       /* ===== Servicios ===== */
       tituloSeccion("Servicios de ADEP", SECCION.servicios, 30 + R.servicios.length * 7.4);
       barras("Servicios que han utilizado", "Porcentaje de personas que usaron cada servicio (podían marcar varios)", R.servicios, SECCION.servicios, "conteo",
-        R.servicios.length ? R.servicios[0].et + " es el servicio que más personas han utilizado." : "");
+        usados.length ? usados[0].et + " es el servicio que más personas han utilizado." : "");
       barras("¿Qué tan satisfechas están con cada servicio?", "Nota promedio de 1 a 5, de la mejor a la más baja", R.satisfaccion, SECCION.servicios, "nota",
         R.satisfaccion.length ? "La nota más alta la tiene " + R.satisfaccion[0].et + " (" + decimal(R.satisfaccion[0].prom) + ")." : "");
 

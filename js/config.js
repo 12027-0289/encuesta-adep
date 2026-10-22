@@ -110,26 +110,27 @@ window.ADEP_CONFIG = {
     ],
   },
 
-  // Opciones de la pregunta 4 y filas de la pregunta 5.
+  // Opciones de la pregunta 4 y filas de la pregunta 5 (del formulario oficial).
+  // La pregunta 4 agrega al final la opción "Ninguno" (ver "ninguno" abajo).
   servicios: [
-    "Revista ECOS",
-    "Cursos y talleres",
-    "Actividades recreativas y culturales",
-    "Excursiones y turismo",
-    "Asesoría legal",
-    "Asesoría en pensiones",
-    "Convenios y descuentos comerciales",
-    "Servicios de salud y bienestar",
-    "Ayudas solidarias / subsidios",
+    "Subsidios",
+    "Préstamo de Equipo Ortopédico",
+    "Clínica Dental",
+    "Convenios Comerciales",
+    "Centro de Recreo",
+    "Actividades Sociales y Recreativas",
+    "Asesoría y Orientación en Materia de Pensiones",
+    "Revista ECOS de ADEP",
   ],
+  // Opción de la pregunta 4 que excluye a las demás; si se marca, la pregunta 5 no aplica.
+  ninguno: "Ninguno",
 
-  // Filas de la pregunta 7.
+  // Filas de la pregunta 7 (del formulario oficial).
   aspectos: [
-    "Atención del personal",
-    "Calidad de los servicios",
-    "Comunicación e información",
-    "Tiempo de respuesta",
-    "Instalaciones",
-    "Defensa de los derechos de las personas pensionadas",
+    "Atención a la persona afiliada",
+    "Canales de Comunicación",
+    "Organización de Actividades",
+    "Infraestructura de Casas Filiales y Núcleos",
+    "Gestión Administrativa",
   ],
 };

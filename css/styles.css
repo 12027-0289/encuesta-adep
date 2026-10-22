@@ -601,6 +601,9 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .btn-wa:hover { background: #1ebe5b; }
 .btn-wa i { font-size: 1.3rem; }
 
+.no-aplica { margin: .6rem 0 0; padding: .8rem 1rem; border-radius: .9rem; background: var(--g-mist); color: var(--ink-soft); font-weight: 600; }
+.no-aplica i { color: var(--acc, var(--g)); margin-right: .3rem; }
+
 /* ---------- Alto contraste ---------- */
 html.hc body, html.hc .app-header, html.hc .card, html.hc .progreso, html.hc .app-footer,
 html.hc .opt > span, html.hc .scale, html.hc .text, html.hc .etiqueta, html.hc .valor { background: #fff !important; color: #000 !important; }
