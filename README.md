@@ -68,15 +68,17 @@ correos: ["primer-correo@ejemplo.com", "segundo-correo@ejemplo.com"],
 ## Recibir las respuestas (Google Sheets + Gmail de ADEP)
 
 Al conectar la cuenta de Gmail de ADEP (guía: **[INSTALAR-BACKEND.md](INSTALAR-BACKEND.md)**), cada respuesta
-se guarda en una hoja de Google y llega un correo **desde esa cuenta** con dos PDF: la respuesta de la persona y el
-**informe general** con gráficos y porcentajes de todas las respuestas. Los correos que reciben se configuran en
-Google (propiedad `CORREOS`). Mientras `endpoint` esté vacío, se usa FormSubmit (solo el PDF individual).
-Para que los correos salgan desde Microsoft 365 (sin el límite de Gmail), vea **[ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md)**.
+se guarda en una hoja de Google, y **todos los días a las 4:00 p. m.** llega un correo **desde esa cuenta** con el
+**informe general** en PDF (gráficos y porcentajes de todas las respuestas), solo si hubo respuestas nuevas.
+Los correos que lo reciben se configuran en Google (propiedad `CORREOS`). El PDF de cada respuesta se descarga
+en la página de resultados. Mientras `endpoint` esté vacío, se usa FormSubmit (un correo con el PDF individual).
+Opcional: enviar desde Microsoft 365, vea **[ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md)**.
 
 ## Página de resultados
 
 `resultados.html` muestra los resultados para la Junta Directiva: cifras principales, gráficos por pregunta,
-filtros por provincia, filial y edad, los comentarios con buscador y la descarga a Excel.
+filtros por provincia, filial y edad, los comentarios con buscador, la descarga a Excel,
+el PDF de cada respuesta y el informe general en PDF.
 Pide la clave que se configura en Google (`CLAVE_RESULTADOS`). No hay ningún enlace a esta página
 desde la encuesta; compártala solo con quien deba verla.
 

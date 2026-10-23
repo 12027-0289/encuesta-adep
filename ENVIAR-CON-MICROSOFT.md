@@ -1,8 +1,8 @@
 # Enviar los correos de la encuesta desde Microsoft 365
 
-Con esto, los correos con los dos PDF salen desde una cuenta de Microsoft 365 de ADEP
-en vez del Gmail. El límite pasa de unos **100** a unos **10 000 destinatarios por día**,
-así que llegan los PDF de todas las respuestas.
+Opcional. Con esto, el correo diario con el informe general sale desde una cuenta de Microsoft 365 de ADEP
+en vez del Gmail. (Con un solo correo al día, el límite de Gmail no es problema; esto sirve solo si
+prefieren que el correo salga desde Microsoft.)
 
 La encuesta, la hoja de Google y la página de resultados **no cambian**.
 Si Microsoft fallara algún día, el correo sale automáticamente por Gmail, como antes.

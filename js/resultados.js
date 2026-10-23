@@ -20,6 +20,28 @@
     redes: ["Facebook", "Instagram", "YouTube"],
     provincias: Object.keys(cfg.filiales || {}).concat(["Otra"]),
   };
+  // Preguntas tal como aparecen en la encuesta, para armar el PDF de cada respuesta.
+  var SECCIONES = [
+    { titulo: "Sobre usted", color: "#008744", preguntas: [
+      ["1", "Filial o Núcleo al que pertenece", "filial"],
+      ["2", "Edad", "edad"],
+      ["3", "Años de pertenecer a la ADEP", "antiguedad"]] },
+    { titulo: "Servicios", color: "#0d8a7a", preguntas: [
+      ["4", "¿Cuáles de los siguientes servicios ha utilizado?", "servicios_utilizados"],
+      ["5", "Nivel de satisfacción de los servicios de ADEP", "Satisfacción - "],
+      ["6", "¿Qué otros temas le gustaría encontrar como parte del contenido de la Revista ECOS de ADEP?", "temas_revista_ecos"]] },
+    { titulo: "Su experiencia", color: "#b8860b", preguntas: [
+      ["7", "¿Cómo califica los siguientes aspectos de ADEP?", "Aspecto - "],
+      ["8", "¿Considera que ADEP mejora su bienestar y calidad de vida?", "mejora_bienestar"],
+      ["9", "¿Recomendaría usted a la ADEP a otras personas trabajadoras de la Educación?", "recomendaria_adep"]] },
+    { titulo: "Comunicación", color: "#c8322e", preguntas: [
+      ["10", "¿Cuáles de los siguientes canales de comunicación de la ADEP utiliza usted con mayor frecuencia?", "canales_comunicacion"],
+      ["11", "¿Cuáles de las siguientes redes sociales utiliza usted con mayor frecuencia?", "redes_sociales"]] },
+    { titulo: "Sus ideas", color: "#04492a", preguntas: [
+      ["12", "¿Qué servicios considera que debieran fortalecerse en ADEP?", "servicios_a_fortalecer"],
+      ["13", "¿Qué nuevos beneficios le gustaría que ADEP ofreciera para atender sus necesidades?", "nuevos_beneficios"],
+      ["14", "¿Qué recomendación nos brindaría para mejorar nuestros servicios?", "recomendaciones"]] },
+  ];
   var TEXTOS = [
     { campo: "recomendaciones", titulo: "Recomendaciones" },
     { campo: "servicios_a_fortalecer", titulo: "Servicios a fortalecer" },
@@ -45,6 +67,10 @@
     return String(filial || "").replace(/\s*\([^)]+\)\s*$/, "");
   }
   function pct(n, total) { return total ? Math.round((n / total) * 100) : 0; }
+  function fechaLarga(v) {
+    var d = new Date(v);
+    return isNaN(d) ? "" : d.toLocaleString("es-CR", { dateStyle: "long", timeStyle: "short" });
+  }
   function fechaCorta(v) {
     var d = new Date(v);
     return isNaN(d) ? "" : d.toLocaleDateString("es-CR", { day: "numeric", month: "short", year: "numeric" });
@@ -224,7 +250,7 @@
       kpi("fa-thumbs-up", "Recomendaría la ADEP", N ? pct(reco, N) + "<small>%</small>" : "—", reco + " de " + N + " respondieron «Sí»") +
       kpi("fa-heart", "ADEP mejora mucho su bienestar", N ? pct(mucho, N) + "<small>%</small>" : "—", mucho + " de " + N + " respondieron «Mucho»");
 
-    if (!N) { $("#graficos").innerHTML = ""; dibujarComentarios(); return; }
+    if (!N) { $("#graficos").innerHTML = ""; dibujarComentarios(); dibujarIndividuales(); return; }
 
     var porProv = contar(vistas.map(function (r) { return { p: provinciaDe(r.filial) }; }), "p", ORDEN.provincias);
     var porFilial = contar(vistas.map(function (r) { return { f: nombreFilial(r.filial) }; }), "f").sort(function (a, b) { return b.n - a.n || a.et.localeCompare(b.et, "es"); });
@@ -243,6 +269,7 @@
       grafico("Redes sociales", "Pregunta 11 · varias opciones", contar(vistas, "redes_sociales", ORDEN.redes, true), N);
 
     dibujarComentarios();
+    dibujarIndividuales();
   }
 
   /* ---------- Comentarios ---------- */
@@ -271,6 +298,93 @@
     dibujarComentarios();
   });
   $("#buscar").addEventListener("input", dibujarComentarios);
+
+  /* ---------- Respuestas individuales (PDF) ---------- */
+  // Las más recientes primero; el número es el orden de llegada.
+  function dibujarIndividuales() {
+    var q = $("#buscar-ind").value.trim().toLowerCase();
+    var items = vistas.map(function (r) { return { r: r, n: todas.indexOf(r) + 1 }; })
+      .filter(function (x) { return !q || nombreFilial(x.r.filial).toLowerCase().indexOf(q) !== -1; })
+      .reverse();
+    $("#lista-ind").innerHTML = items.length ? items.map(function (x) {
+      var r = x.r;
+      return '<li><span class="i-n">#' + x.n + '</span><div class="i-datos"><strong>' + escapar(nombreFilial(r.filial)) + "</strong>" +
+        "<span>" + escapar([fechaLarga(r.fecha), r.edad].filter(Boolean).join(" · ")) + "</span></div>" +
+        '<button type="button" class="btn btn-sec" data-n="' + x.n + '"><i class="fa-solid fa-download"></i> Descargar PDF</button></li>';
+    }).join("") : '<li><p class="g-nada">No hay respuestas' + (q ? " con esa búsqueda" : "") + ".</p></li>";
+  }
+  $("#buscar-ind").addEventListener("input", dibujarIndividuales);
+
+  function infoPDF(r) {
+    return {
+      fecha: fechaLarga(r.fecha),
+      filial: String(r.filial || "").replace(/\s*\(([^)]+)\)$/, " · $1"),
+      edad: r.edad,
+      antiguedad: r.antiguedad,
+      secciones: SECCIONES.map(function (s) {
+        return {
+          titulo: s.titulo,
+          color: s.color,
+          preguntas: s.preguntas.map(function (p) {
+            var o = { num: p[0], texto: p[1] };
+            if (/ - $/.test(p[2])) {
+              var items = p[2] === "Satisfacción - " ? cfg.servicios : cfg.aspectos;
+              o.filas = items.filter(function (it) { return Number(r[p[2] + it]) >= 1; })
+                .map(function (it) { return { et: it, v: Number(r[p[2] + it]) }; });
+            } else {
+              o.respuesta = String(r[p[2]] == null ? "" : r[p[2]]).trim();
+            }
+            return o;
+          }),
+        };
+      }),
+    };
+  }
+  function nombreArchivo(base, extra) {
+    return base + (extra ? "-" + String(extra).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") : "") +
+      "-" + new Date().toISOString().slice(0, 10) + ".pdf";
+  }
+  function descargar(blob, nombre) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  // Mientras se arma el PDF, el botón muestra que está trabajando.
+  function conEspera(btn, crear) {
+    var antes = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando…';
+    return crear().catch(function (err) {
+      console.error(err);
+      alert("No se pudo crear el PDF. Revise su conexión e intente de nuevo.");
+    }).finally(function () { btn.disabled = false; btn.innerHTML = antes; });
+  }
+
+  $("#lista-ind").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-n]");
+    if (!b || !window.ADEP_PDF) return;
+    var r = todas[+b.dataset.n - 1];
+    conEspera(b, function () {
+      return window.ADEP_PDF.crear(infoPDF(r)).then(function (blob) {
+        descargar(blob, nombreArchivo("Respuesta-" + b.dataset.n, nombreFilial(r.filial)));
+      });
+    });
+  });
+
+  // Informe general con gráficos (el mismo que llega por correo), con los filtros aplicados.
+  $("#informe").addEventListener("click", function () {
+    var b = $("#informe");
+    if (!window.ADEP_INFORME) return;
+    if (!vistas.length) { alert("No hay respuestas con estos filtros."); return; }
+    var filtro = [$("#f-provincia").value, $("#f-filial").value, $("#f-edad").value].filter(Boolean).join(" ");
+    conEspera(b, function () {
+      return window.ADEP_INFORME.crear(vistas).then(function (blob) {
+        descargar(blob, nombreArchivo("Informe-general-Encuesta-ADEP", filtro));
+      });
+    });
+  });
 
   /* ---------- Excel ---------- */
   $("#excel").addEventListener("click", function () {

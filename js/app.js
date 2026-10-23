@@ -426,24 +426,12 @@
     ["nuevos_beneficios", "13. Nuevos beneficios"],
     ["recomendaciones", "14. Recomendaciones"],
   ];
-  // PDF individual en base64 para enviarlo a Google junto con la respuesta.
+  // Nombre del PDF individual (correo de respaldo por FormSubmit).
   function nombrePDF(data) {
     var filial = String(data.filial || "").replace(/\s*\([^)]+\)$/, "");
     return "Encuesta-ADEP-" + filial.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-") +
       "-" + new Date().toISOString().slice(0, 10) + ".pdf";
   }
-  function pdfBase64(data) {
-    if (!window.ADEP_PDF) return Promise.resolve(null);
-    return window.ADEP_PDF.crear(infoPDF(data)).then(function (blob) {
-      return new Promise(function (ok) {
-        var fr = new FileReader();
-        fr.onload = function () { ok({ base64: String(fr.result).split(",")[1], nombre: nombrePDF(data) }); };
-        fr.onerror = function () { ok(null); };
-        fr.readAsDataURL(blob);
-      });
-    }).catch(function () { return null; });
-  }
-
   // Informe general: Google entrega solo números de las respuestas anteriores (?resumen=1)
   // y aquí se suma la respuesta nueva. Si algo falla, Google arma un informe sencillo.
   function informeBase64(data) {
@@ -634,15 +622,14 @@
     var data = collect();
     data.id_persona = idPersona;
 
-    // Con la hoja de Google conectada, Google guarda la respuesta y envía el correo con los dos PDF.
+    // Con la hoja de Google conectada, Google guarda la respuesta y el informe general (que envía una vez al día).
     // Sin ella, el correo sale por FormSubmit (solo con el PDF individual) y queda una copia local.
     var correos = (cfg.correos || []).filter(Boolean);
     var send;
     if (cfg.endpoint) {
-      send = Promise.all([pdfBase64(data), informeBase64(data)]).then(function (pdfs) {
+      send = informeBase64(data).then(function (informe) {
         var envio = Object.assign({}, data);
-        if (pdfs[0]) { envio.pdf_base64 = pdfs[0].base64; envio.pdf_nombre = pdfs[0].nombre; }
-        if (pdfs[1]) envio.informe_base64 = pdfs[1];
+        if (informe) envio.informe_base64 = informe;
         return enviarHoja(envio);
       });
     } else {

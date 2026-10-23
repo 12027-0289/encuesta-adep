@@ -1,6 +1,6 @@
 /*
- * PDF de una respuesta de la encuesta (se adjunta al correo).
- * Usa jsPDF (cargado desde cdnjs en index.html).
+ * PDF de una respuesta de la encuesta (se descarga en la página de resultados
+ * y se adjunta al correo de respaldo por FormSubmit). Usa jsPDF (cargado desde cdnjs).
  *
  * ADEP_PDF.crear(info) -> Promise<Blob>
  *   info = {
@@ -215,7 +215,7 @@
         fuente("normal", 7.5, SUAVE);
         doc.text("Página " + i + " de " + total, W - M, H - 10, { align: "right" });
         fuente("normal", 6.5, [150, 165, 156]);
-        doc.text("Código de persona: " + (info.codigo || "—") + "  ·  Encuesta de Servicio ADEP", M, H - 6);
+        doc.text((info.codigo ? "Código de persona: " + info.codigo + "  ·  " : "") + "Encuesta de Servicio ADEP", M, H - 6);
       }
 
       return doc.output("blob");

@@ -3,11 +3,13 @@
  *
  * Con cada respuesta:
  *   1. La guarda como una fila en la hoja "Respuestas" (y rechaza cédulas repetidas).
- *   2. Envía un correo, desde esta cuenta de Gmail, con dos PDF adjuntos que arma la encuesta:
- *      la respuesta de la persona y el informe general con gráficos.
- *      (Para armar el informe, la encuesta pide aquí solo números: GET ?resumen=1.
+ *   2. Guarda el informe general con gráficos (PDF) que arma la encuesta con todas las respuestas
+ *      hasta ese momento. (Para armarlo, la encuesta pide aquí solo números: GET ?resumen=1.
  *       Nunca se entregan cédulas, filiales ni comentarios.)
- * Además entrega los datos a resultados.html, solo con la clave correcta.
+ * Una vez al día (4:00 p. m.) envía un solo correo con el informe general, si hubo respuestas nuevas.
+ * Para programarlo, ejecute una vez la función activarResumenDiario.
+ * Además entrega los datos a resultados.html, solo con la clave correcta
+ * (ahí se descargan los PDF de cada respuesta y el informe general).
  *
  * Instalación: vea INSTALAR-BACKEND.md. Datos que NO van en este código
  * (Configuración del proyecto > Propiedades de la secuencia de comandos):
@@ -22,6 +24,9 @@
  * Si faltan, o si Microsoft falla, el correo sale desde esta cuenta de Gmail.
  */
 var HOJA = "Respuestas";
+var HOJA_INFORME = "_informe";   // hoja oculta donde se guarda el último informe general (PDF)
+var HORA_RESUMEN = 16;           // hora del correo diario (hora de Costa Rica)
+var ZONA = "America/Costa_Rica";
 var COLUMNA_ID = "id_persona";
 var MAX_TEXTO = 2000;
 var MAX_PDF = 3 * 1024 * 1024; // tamaño máximo del PDF individual (en caracteres base64)
@@ -107,7 +112,7 @@ function filasAnonimas_(sheet) {
 }
 
 // POST { accion: "resultados", clave } -> { ok, filas }
-// POST { ...respuestas, id_persona, pdf_base64, pdf_nombre } -> { ok, correo } | { ok: false, duplicado: true }
+// POST { ...respuestas, id_persona, informe_base64 } -> { ok } | { ok: false, duplicado: true }
 function doPost(e) {
   var data;
   try { data = JSON.parse(e.postData.contents); } catch (err) { return responder_({ ok: false, error: "Datos inválidos." }); }
@@ -144,33 +149,81 @@ function guardar_(data) {
     lock.releaseLock();
   }
 
-  // El envío del correo no debe hacer fallar la respuesta: ya quedó guardada.
-  var correo = false;
-  try { correo = enviarCorreo_(data, sheet); } catch (err) { console.error("Correo: " + err); }
-  return responder_({ ok: true, correo: correo });
+  // Guardar el informe no debe hacer fallar la respuesta: ya quedó guardada.
+  try { guardarInforme_(data.informe_base64); } catch (err) { console.error("Informe: " + err); }
+  return responder_({ ok: true });
 }
 
-/* ======================= Correo con los dos PDF ======================= */
-function enviarCorreo_(data, sheet) {
+/* ======================= Último informe general ======================= */
+// Se guarda en una hoja oculta: A1 = fecha, A2… = el PDF en base64 en pedazos (una celda admite 50 000 caracteres).
+var PEDAZO = 45000;
+function guardarInforme_(b64) {
+  b64 = String(b64 || "");
+  if (!b64 || b64.length > MAX_PDF || b64.indexOf("JVBERi0") !== 0) return;
+  var libro = SpreadsheetApp.getActiveSpreadsheet();
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var h = libro.getSheetByName(HOJA_INFORME);
+    if (!h) { h = libro.insertSheet(HOJA_INFORME); h.hideSheet(); }
+    var valores = [[new Date()]];
+    for (var i = 0; i < b64.length; i += PEDAZO) valores.push([b64.slice(i, i + PEDAZO)]);
+    h.clear();
+    h.getRange(1, 1, valores.length, 1).setValues(valores);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function leerInforme_() {
+  var h = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HOJA_INFORME);
+  if (!h || h.getLastRow() < 2) return null;
+  var v = h.getRange(1, 1, h.getLastRow(), 1).getValues();
+  return { fecha: new Date(v[0][0]), base64: v.slice(1).map(function (f) { return String(f[0]); }).join("") };
+}
+
+/* ======================= Correo diario con el informe general ======================= */
+// Lo ejecuta Google cada día a las 4:00 p. m. Solo envía si hubo respuestas desde el último correo.
+function enviarResumenDiario() {
   var para = correos_();
   if (!para.length) { console.warn("No hay correos en la propiedad CORREOS."); return false; }
 
-  var filas = filas_(sheet);
+  var props = PropertiesService.getScriptProperties();
+  var ultimo = new Date(Number(props.getProperty("ULTIMO_RESUMEN") || 0));
+  var ahora = new Date();
+  var filas = filas_(hoja_());
+  var nuevas = filas.filter(function (r) { var f = new Date(r.fecha); return f > ultimo && f <= ahora; }).length;
+  if (!nuevas) { console.log("Sin respuestas nuevas desde el último correo: no se envía nada."); return false; }
+
   var R = resumen_(filas);
-  var hoy = Utilities.formatDate(new Date(), "America/Costa_Rica", "yyyy-MM-dd");
-  var adjuntos = [];
+  var hoy = Utilities.formatDate(ahora, ZONA, "yyyy-MM-dd");
+  var nombre = "Informe-general-Encuesta-ADEP-" + hoy + ".pdf";
+  // El informe con gráficos lo arma la encuesta con cada respuesta. Se usa el último, si incluye la respuesta más reciente;
+  // si no, se arma aquí uno sencillo.
+  var masReciente = filas.reduce(function (m, r) { var f = new Date(r.fecha); return f > m ? f : m; }, new Date(0));
+  var guardado = leerInforme_();
+  var informe = guardado && guardado.fecha >= masReciente ? pdfRecibido_(guardado.base64, nombre) : null;
+  if (!informe) {
+    informe = Utilities.newBlob(htmlInforme_(R), "text/html", "informe.html").getAs("application/pdf").setName(nombre);
+  }
 
-  var individual = pdfRecibido_(data.pdf_base64, data.pdf_nombre || "Respuesta-Encuesta-ADEP.pdf");
-  if (individual) adjuntos.push(individual);
-  // El informe general lo arma la encuesta (con gráficos). Si no llegó, se arma aquí uno sencillo.
-  var informe = pdfRecibido_(data.informe_base64, "Informe-general-Encuesta-ADEP-" + hoy + ".pdf") ||
-    Utilities.newBlob(htmlInforme_(R), "text/html", "informe.html").getAs("application/pdf")
-      .setName("Informe-general-Encuesta-ADEP-" + hoy + ".pdf");
-  adjuntos.push(informe);
+  var asunto = "Encuesta ADEP · Resumen del día · " + nuevas + (nuevas === 1 ? " respuesta nueva" : " respuestas nuevas") +
+    " · " + R.N + " en total";
+  var enviado = enviar_(para, asunto, htmlCorreo_(nuevas, R), [informe]);
+  if (enviado) props.setProperty("ULTIMO_RESUMEN", String(ahora.getTime()));
+  return enviado;
+}
 
-  var filial = String(data.filial || "").replace(/\s*\([^)]+\)\s*$/, "");
-  return enviar_(para, "Encuesta ADEP · Nueva respuesta · " + filial + " · " + R.N + " en total",
-    htmlCorreo_(filial, R), adjuntos);
+// Ejecútela UNA vez desde el editor: programa el correo diario de las 4:00 p. m. (hora de Costa Rica).
+// Se puede volver a ejecutar sin problema: reemplaza la programación anterior.
+function activarResumenDiario() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === "enviarResumenDiario") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("enviarResumenDiario").timeBased().everyDays(1).atHour(HORA_RESUMEN).nearMinute(0)
+    .inTimezone(ZONA).create();
+  console.log("Listo: el informe general llegará todos los días cerca de las " + (HORA_RESUMEN - 12) +
+    ":00 p. m. a " + correos_().join(", ") + " (solo los días con respuestas nuevas).");
 }
 
 // Envía por Microsoft 365 si está configurado; si no (o si falla), por Gmail.
@@ -443,21 +496,22 @@ function htmlInforme_(R) {
   return h + "</div></body></html>";
 }
 
-function htmlCorreo_(filial, R) {
+function htmlCorreo_(nuevas, R) {
   return '<div style="font-family:Arial,Helvetica,sans-serif;color:#17241e;max-width:560px;">' +
     '<div style="background:#04492a;color:#ffffff;padding:18px 22px;border-radius:12px 12px 0 0;border-bottom:4px solid #e52521;">' +
     '<div style="font-size:11px;letter-spacing:2px;color:#aaebc8;font-weight:bold;">ENCUESTA DE SERVICIO · ADEP</div>' +
-    '<div style="font-size:20px;font-weight:bold;margin-top:4px;">Nueva respuesta recibida</div></div>' +
+    '<div style="font-size:20px;font-weight:bold;margin-top:4px;">Resumen del día</div></div>' +
     '<div style="border:1px solid #dbe6df;border-top:0;padding:18px 22px;border-radius:0 0 12px 12px;">' +
-    "<p>Se recibió una nueva respuesta de la filial <b>" + esc_(filial) + "</b>.</p>" +
+    "<p>Desde el último resumen se recibieron <b>" + nuevas + "</b> " + (nuevas === 1 ? "respuesta nueva" : "respuestas nuevas") + ".</p>" +
     "<p>Van <b>" + R.N + "</b> respuestas en total. Calificación promedio: <b>" + dec_(R.promedio) + " de 5</b>. " +
     "Recomendaría la ADEP: <b>" + pct_(R.reco, R.N) + "%</b>.</p>" +
-    "<p>Adjuntos:</p><ul><li>La respuesta de la persona (PDF).</li><li>El informe general actualizado con gráficos y porcentajes (PDF).</li></ul>" +
+    "<p>Adjuntos:</p><ul><li>El informe general actualizado con gráficos y porcentajes (PDF).</li></ul>" +
+    "<p>Las respuestas de cada persona, en PDF, se descargan en la página de resultados.</p>" +
     '<p style="color:#008744;font-weight:bold;">Orgullosos de ser personas solidarias</p></div></div>';
 }
 
 /* Prueba manual: en el editor elija "probarCorreo" y presione Ejecutar.
-   Envía un correo corto a CORREOS para confirmar que el envío funciona.
+   Envía un correo corto a CORREOS para confirmar que el envío funciona (no marca nada como enviado).
    Si Microsoft 365 está configurado, la prueba sale por Microsoft y muestra el error si algo falta.
    (El informe general con gráficos lo arma la encuesta y llega con cada respuesta.) */
 function probarCorreo() {
@@ -465,8 +519,8 @@ function probarCorreo() {
   if (!para.length) throw new Error("Agregue la propiedad CORREOS (Configuración del proyecto).");
   var R = resumen_(filas_(hoja_()));
   var asunto = "Encuesta ADEP · Prueba de envío";
-  var html = htmlCorreo_("(prueba)", R).replace("Nueva respuesta recibida", "Prueba de envío")
-    .replace(/<p>Adjuntos:[\s\S]*?<\/ul>/, "<p>Si recibió este correo, el envío funciona. Con cada respuesta llegarán dos PDF: la respuesta y el informe general con gráficos.</p>");
+  var html = htmlCorreo_(0, R).replace("Resumen del día", "Prueba de envío")
+    .replace(/<p>Desde el último[\s\S]*?<\/ul>/, "<p>Si recibió este correo, el envío funciona. Todos los días a las 4:00 p. m. llegará el informe general con gráficos, si hubo respuestas nuevas.</p>");
   if (microsoft_()) {
     enviarMicrosoft_(para, asunto, html, []);
     console.log("Listo: la prueba salió por Microsoft 365 desde " + microsoft_().remitente);

@@ -3,11 +3,13 @@
 Con estos pasos, cada vez que alguien responde la encuesta:
 
 1. La respuesta se guarda en una hoja de cálculo de Google.
-2. Llega un correo, **enviado desde la cuenta de ADEP**, con **dos PDF**:
-   la respuesta de la persona y el **informe general** con gráficos y porcentajes de todas las respuestas.
-3. Cada cédula puede responder **una sola vez**, desde cualquier equipo.
+2. Cada cédula puede responder **una sola vez**, desde cualquier equipo.
 
-Además funciona la página `resultados.html` para ver los resultados en pantalla.
+Y **una vez al día, a las 4:00 p. m.**, llega un correo **enviado desde la cuenta de ADEP** con el
+**informe general** en PDF (gráficos y porcentajes de todas las respuestas). Solo llega los días con respuestas nuevas.
+
+Además funciona la página `resultados.html` para ver los resultados en pantalla, descargar el PDF de cada respuesta
+y descargar el informe general cuando se necesite.
 
 Se hace **una sola vez** (unos 15 minutos), con la cuenta de Gmail de ADEP.
 
@@ -51,7 +53,15 @@ Para cambiar los correos más adelante, solo se edita la propiedad `CORREOS`; no
    Si aparece "Google no ha verificado esta aplicación", presione **Configuración avanzada → Ir a … (no seguro)** y luego **Permitir**.
    Es normal: el código es de ADEP y solo usa esta hoja y el correo de esta cuenta.
 4. Revise los correos de la lista: debe llegar "Encuesta ADEP · Prueba de envío".
-   (Los dos PDF —la respuesta y el informe general con gráficos— llegan cuando alguien responde la encuesta.)
+
+## 4b. Programar el correo diario de las 4:00 p. m.
+
+1. En el **Editor**, elija la función **activarResumenDiario** y presione **Ejecutar**.
+2. Si Google pide permisos otra vez, presione **Permitir**.
+3. Abajo, en el **Registro de ejecución**, debe decir "Listo: el informe general llegará todos los días cerca de las 4:00 p. m.".
+
+Se hace una sola vez. Si se vuelve a ejecutar, no se duplica.
+Para probarlo sin esperar a las 4, ejecute **enviarResumenDiario**: si hay respuestas nuevas, llega el correo en ese momento.
 
 ## 5. Publicar como aplicación web
 
@@ -74,14 +84,15 @@ En `js/config.js`, pegue la URL entre las comillas de `endpoint`:
 endpoint: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec",
 ```
 
-Guarde, haga commit y súbalo a GitHub (`git push`). Desde ese momento los correos salen desde la cuenta de ADEP
-con los dos PDF, y ya no se usa FormSubmit.
+Guarde, haga commit y súbalo a GitHub (`git push`). Desde ese momento las respuestas se guardan en la hoja,
+el correo diario sale desde la cuenta de ADEP, y ya no se usa FormSubmit.
 
 ## 7. Prueba final
 
 1. Responda la encuesta con una cédula de prueba.
 2. Revise la hoja: aparece la pestaña **Respuestas** con una fila.
-3. Revise el correo: deben llegar los dos PDF.
+3. En Apps Script ejecute **enviarResumenDiario**: debe llegar el correo con el informe general.
+   En la página de resultados, descargue el PDF de la respuesta y el informe general.
 4. Intente responder otra vez con la misma cédula: debe decir que ya respondió.
 5. Borre la fila de prueba de la hoja antes de compartir la encuesta.
 
@@ -90,11 +101,11 @@ con los dos PDF, y ya no se usa FormSubmit.
 ## Bueno saber
 
 - **Límite de correos:** una cuenta Gmail gratuita puede enviar a unas **100 direcciones por día**.
-  Con 2 correos en la lista, alcanza para unas **50 respuestas diarias**. Si se pasa del límite,
-  las respuestas **igual se guardan** en la hoja; solo deja de llegar el correo hasta el día siguiente.
-  Para que lleguen todos, los correos pueden salir desde **Microsoft 365** (unos 10 000 por día):
-  vea [ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md).
-- **Si cambia el código más adelante:** después de pegar la versión nueva, vaya a
+  Como llega **un solo correo al día**, nunca se pasa del límite, aunque respondan cientos de personas.
+- **Opcional:** si prefieren que el correo salga desde una cuenta de **Microsoft 365** de ADEP,
+  vea [ENVIAR-CON-MICROSOFT.md](ENVIAR-CON-MICROSOFT.md) (necesita a la persona que administra Microsoft 365).
+- **Si cambia el código más adelante:** no hace falta volver a ejecutar `activarResumenDiario`.
+  **Además:** después de pegar la versión nueva, vaya a
   **Implementar → Gestionar implementaciones**, presione el lápiz ✏️, elija **Versión: Nueva versión** e **Implementar**.
   Así la URL sigue siendo la misma.
 - **Qué guarda cada fila:** las respuestas, la fecha y hora (la pone Google) y `id_persona`, que es la cédula

@@ -59,6 +59,7 @@
         </div>
         <div class="res-acciones">
           <button type="button" class="btn btn-sec" id="actualizar"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+          <button type="button" class="btn btn-sec" id="informe"><i class="fa-solid fa-file-pdf"></i> Informe general (PDF)</button>
           <button type="button" class="btn btn-green" id="excel"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
         </div>
       </div>
@@ -93,6 +94,13 @@
         <input class="text buscar" type="search" id="buscar" placeholder="Buscar en los comentarios…" aria-label="Buscar en los comentarios">
         <ul class="lista-com" id="lista-com"></ul>
       </div>
+
+      <h2 class="res-sub"><i class="fa-solid fa-file-pdf"></i> Respuestas individuales</h2>
+      <div class="individuales card">
+        <p class="ind-ayuda">Cada respuesta completa, en PDF. Respeta los filtros de arriba.</p>
+        <input class="text buscar" type="search" id="buscar-ind" placeholder="Buscar por filial o núcleo…" aria-label="Buscar respuestas por filial o núcleo">
+        <ul class="lista-ind" id="lista-ind"></ul>
+      </div>
     </section>
   </main>
 
@@ -102,7 +110,10 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/pdf.js"></script>
+  <script src="js/informe-pdf.js"></script>
   <script src="js/resultados.js"></script>
 </body>
 </html>
