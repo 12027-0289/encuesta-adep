@@ -701,6 +701,7 @@
       var paso = loadDraft();
       refreshAll();
       showStep(paso);
+      pedirMicAlInicio();
     }).catch(function () {
       errorCedula("No se pudo verificar la cédula. Revise su conexión e intente de nuevo.");
     }).finally(function () {
@@ -759,7 +760,15 @@
   function mostrarAyudaMic(tipo, continuar) {
     var equipo = tipoEquipo();
     var pasos;
-    if (tipo === "pedir") {
+    if (tipo === "inicio") {
+      $("#am-titulo").textContent = "¿Quiere responder hablando?";
+      $("#am-texto").innerHTML =
+        "<p>En algunas preguntas puede hablar en vez de escribir. Para eso, su equipo le preguntará <b>una sola vez</b> si permite usar el micrófono. Toque <b>«Permitir»</b>.</p>" +
+        '<div class="am-ejemplo" aria-hidden="true"><p><i class="fa-solid fa-microphone"></i> adep-encuesta.web.app quiere usar su micrófono</p>' +
+        '<div class="am-op"><span>Bloquear</span><span class="am-permitir">Permitir</span></div></div>' +
+        "<p>Solo se usa para escribir lo que usted diga. No se graba su voz.</p>";
+      $("#am-si").innerHTML = '<i class="fa-solid fa-microphone"></i> Sí, permitir el micrófono';
+    } else if (tipo === "pedir") {
       $("#am-titulo").textContent = "Para dictar, su equipo le pedirá permiso";
       $("#am-texto").innerHTML =
         "<p>Al continuar, aparecerá un mensaje preguntando si permite usar el micrófono. Toque <b>«Permitir»</b>.</p>" +
@@ -805,7 +814,8 @@
       $("#am-si").textContent = "Entendido";
     }
     alContinuarMic = continuar || null;
-    $("#am-no").hidden = tipo !== "pedir";
+    $("#am-no").hidden = tipo !== "pedir" && tipo !== "inicio";
+    $("#am-no").textContent = tipo === "inicio" ? "No, prefiero escribir" : "Prefiero escribir";
     focoAntesMic = document.activeElement;
     $("#aviso").classList.remove("ver");
     ayudaMic.hidden = false;
@@ -819,6 +829,22 @@
     if (seguir && fn) fn();
     else if (focoAntesMic && focoAntesMic.focus) focoAntesMic.focus();
   }
+  // Al comenzar la encuesta se pide el permiso UNA sola vez; después, «Dictar con mi voz» empieza directo.
+  function pedirMicAlInicio() {
+    if (!Reconocimiento || micExplicado || permisoMic === "granted" || permisoMic === "denied") return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    micExplicado = true;
+    mostrarAyudaMic("inicio", function () {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+        s.getTracks().forEach(function (t) { t.stop(); });
+        permisoMic = "granted";
+        aviso("¡Listo! Ya puede dictar sus respuestas con la voz.");
+      }).catch(function (err) {
+        if (err && (err.name === "NotAllowedError" || err.name === "SecurityError")) permisoMic = "denied";
+      });
+    });
+  }
+
   if (ayudaMic) {
     $("#am-si").addEventListener("click", function () { cerrarAyudaMic(true); });
     $("#am-no").addEventListener("click", function () { cerrarAyudaMic(false); });
