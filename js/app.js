@@ -744,6 +744,16 @@
     return "compu";
   }
 
+  // En celulares y tabletas, el micrófono del teclado no pide ningún permiso a la página.
+  var esTactil = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  // Dibujo sencillo de un teclado con el micrófono resaltado.
+  function dibujoTeclado() {
+    var fila = function (letras) { return '<div class="tk-fila">' + letras.split("").map(function (l) { return "<span>" + l + "</span>"; }).join("") + "</div>"; };
+    return '<div class="teclado" aria-hidden="true">' + fila("qwertyuiop") + fila("asdfghjklñ") +
+      '<div class="tk-fila"><span class="tk-ancha">123</span><span class="tk-mic"><i class="fa-solid fa-microphone"></i></span>' +
+      '<span class="tk-espacio">espacio</span><span class="tk-ancha">listo</span></div></div>';
+  }
+
   var ayudaMic = $("#ayuda-mic");
   var alContinuarMic = null, focoAntesMic = null;
   function mostrarAyudaMic(tipo, continuar) {
@@ -757,6 +767,23 @@
         '<div class="am-op"><span>Bloquear</span><span class="am-permitir">Permitir</span></div></div>' +
         "<p>Solo se usa para escribir lo que usted diga. No se graba su voz.</p>";
       $("#am-si").innerHTML = '<i class="fa-solid fa-microphone"></i> Continuar';
+    } else if (esTactil) {
+      // Celular: lo más fácil es el micrófono del teclado. Los pasos de configuración quedan como otra opción.
+      if (equipo === "iphone") {
+        pasos = ["Toque el ícono <b>aA</b> (o el de los tres puntos) junto a la dirección de la página.",
+          "Toque <b>«Configuración del sitio web»</b>.", "En <b>«Micrófono»</b>, elija <b>«Permitir»</b>."];
+      } else {
+        pasos = ["Toque el ícono a la <b>izquierda de la dirección</b> de la página (un candado o unas rayitas).",
+          "Toque <b>«Permisos»</b> o <b>«Configuración del sitio»</b>.", "Toque <b>«Micrófono»</b> y elija <b>«Permitir»</b>."];
+      }
+      $("#am-titulo").textContent = "No se preocupe: puede hablar con el teclado";
+      $("#am-texto").innerHTML =
+        "<p>Toque la casilla para escribir. Cuando aparezca el teclado, toque el <b>micrófono</b> y hable.</p>" +
+        dibujoTeclado() +
+        '<p class="am-nota">El micrófono suele estar en una esquina del teclado, como cuando dicta un mensaje de WhatsApp.</p>' +
+        '<details class="am-otra"><summary>Otra opción: permitir el micrófono de la página</summary><ol>' +
+        pasos.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ol></details>";
+      $("#am-si").innerHTML = '<i class="fa-solid fa-keyboard"></i> Entendido, abrir el teclado';
     } else {
       if (equipo === "iphone") {
         pasos = ["Toque el ícono <b>aA</b> (o el de los tres puntos) junto a la dirección de la página, arriba o abajo de la pantalla.",
@@ -778,6 +805,7 @@
       $("#am-si").textContent = "Entendido";
     }
     alContinuarMic = continuar || null;
+    $("#am-no").hidden = tipo !== "pedir";
     focoAntesMic = document.activeElement;
     $("#aviso").classList.remove("ver");
     ayudaMic.hidden = false;
@@ -808,7 +836,7 @@
 
     boton.addEventListener("click", function () {
       if (dictando && dictando.campo === campo) { dictando.rec.stop(); return; }
-      if (permisoMic === "denied") { mostrarAyudaMic("bloqueado"); return; }
+      if (permisoMic === "denied") { mostrarAyudaMic("bloqueado", abrirTeclado); return; }
       if (permisoMic !== "granted" && !micExplicado) {
         micExplicado = true;
         mostrarAyudaMic("pedir", empezar);
@@ -816,6 +844,9 @@
       }
       empezar();
     });
+
+    // Al cerrar la ayuda se pone el cursor en la casilla, y en el celular se abre el teclado con su micrófono.
+    function abrirTeclado() { campo.focus(); }
 
     function empezar() {
       if (dictando) dictando.rec.stop();
@@ -841,7 +872,7 @@
       rec.onerror = function (ev) {
         if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
           permisoMic = "denied";
-          mostrarAyudaMic("bloqueado");
+          mostrarAyudaMic("bloqueado", abrirTeclado);
         } else if (ev.error === "audio-capture") {
           aviso("No se encontró un micrófono en este equipo. Puede escribir su respuesta.");
         } else if (ev.error === "network") {
@@ -862,6 +893,16 @@
     }
   }
 
+  // En celulares, debajo de cada pregunta abierta se recuerda el micrófono del teclado (no pide permisos).
+  if (esTactil) {
+    $$("textarea", form).forEach(function (campo) {
+      var p = document.createElement("p");
+      p.className = "tip-teclado";
+      p.innerHTML = '<span class="tk-mic" aria-hidden="true"><i class="fa-solid fa-microphone"></i></span>' +
+        "<span>¿Prefiere hablar? Toque la casilla y luego el <b>micrófono de su teclado</b>.</span>";
+      campo.insertAdjacentElement("afterend", p);
+    });
+  }
   if (Reconocimiento) {
     $$("textarea", form).forEach(agregarMicrofono);
   }

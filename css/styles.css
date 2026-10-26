@@ -534,6 +534,29 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 @keyframes am-entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes am-pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(229, 37, 33, .45); } 50% { box-shadow: 0 0 0 7px rgba(229, 37, 33, 0); } }
 @media (prefers-reduced-motion: reduce) { .am-caja, .am-ejemplo .am-op .am-permitir { animation: none; } }
+/* Teclado dibujado con el micrófono resaltado */
+.teclado { margin: 0 auto .7rem; max-width: 19rem; padding: .45rem; border-radius: .8rem; background: #d9dee3; display: grid; gap: .3rem; }
+.tk-fila { display: flex; gap: .2rem; justify-content: center; }
+.tk-fila span {
+  flex: 1; min-width: 0; display: grid; place-items: center; height: 1.75rem; border-radius: .3rem;
+  background: #fff; color: #333; font: 500 .8rem 'Inter', sans-serif; box-shadow: 0 1px 0 #9aa3ab;
+}
+.tk-fila .tk-ancha { flex: 1.6; background: #c4cad0; font-size: .7rem; }
+.tk-fila .tk-espacio { flex: 4; font-size: .7rem; color: #777; }
+.teclado .tk-mic { flex: 1.2; background: #fff; color: var(--r); border: 3px solid var(--r); font-size: .95rem; animation: am-pulso 1.4s ease-in-out infinite; }
+.am-caja .am-nota { font-size: 1rem; color: var(--ink-soft); }
+.am-otra { margin: 0 0 1rem; text-align: left; }
+.am-otra summary { cursor: pointer; font-weight: 700; color: var(--g-dark); padding: .4rem 0; font-size: 1rem; }
+.am-otra ol { margin-top: .5rem; font-size: 1rem; }
+/* Recordatorio debajo de las preguntas abiertas (solo en celulares) */
+.tip-teclado { display: flex; align-items: center; gap: .6rem; margin: .7rem 0 0; font-size: .98rem; color: var(--ink-soft); }
+.tip-teclado .tk-mic {
+  flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: .4rem;
+  border: 2px solid var(--r); color: var(--r); background: var(--surface); font-size: .85rem;
+}
+.tip-teclado b { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .teclado .tk-mic { animation: none; } }
+
 html.hc .am-caja, html.hc .am-ejemplo { background: #fff !important; color: #000 !important; border: 2px solid #000; }
 
 /* ---------- Final: frase y confeti ---------- */
