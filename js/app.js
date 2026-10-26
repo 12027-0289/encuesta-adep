@@ -725,6 +725,79 @@
   var Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
   var dictando = null;
 
+  // El navegador siempre pide permiso para el micrófono (ninguna página puede activarlo sola).
+  // Antes de que aparezca esa pregunta, la encuesta explica con letra grande qué tocar,
+  // y si el micrófono quedó bloqueado, explica cómo volver a permitirlo.
+  var permisoMic = "desconocido"; // "granted" | "denied" | "prompt" | "desconocido"
+  var micExplicado = false;
+  if (Reconocimiento && navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "microphone" }).then(function (s) {
+      permisoMic = s.state;
+      s.onchange = function () { permisoMic = s.state; };
+    }).catch(function () { /* el navegador no lo informa */ });
+  }
+
+  function tipoEquipo() {
+    var ua = navigator.userAgent || "";
+    if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iphone";
+    if (/Android/.test(ua)) return "android";
+    return "compu";
+  }
+
+  var ayudaMic = $("#ayuda-mic");
+  var alContinuarMic = null, focoAntesMic = null;
+  function mostrarAyudaMic(tipo, continuar) {
+    var equipo = tipoEquipo();
+    var pasos;
+    if (tipo === "pedir") {
+      $("#am-titulo").textContent = "Para dictar, su equipo le pedirá permiso";
+      $("#am-texto").innerHTML =
+        "<p>Al continuar, aparecerá un mensaje preguntando si permite usar el micrófono. Toque <b>«Permitir»</b>.</p>" +
+        '<div class="am-ejemplo" aria-hidden="true"><p><i class="fa-solid fa-microphone"></i> adep-encuesta.web.app quiere usar su micrófono</p>' +
+        '<div class="am-op"><span>Bloquear</span><span class="am-permitir">Permitir</span></div></div>' +
+        "<p>Solo se usa para escribir lo que usted diga. No se graba su voz.</p>";
+      $("#am-si").innerHTML = '<i class="fa-solid fa-microphone"></i> Continuar';
+    } else {
+      if (equipo === "iphone") {
+        pasos = ["Toque el ícono <b>aA</b> (o el de los tres puntos) junto a la dirección de la página, arriba o abajo de la pantalla.",
+          "Toque <b>«Configuración del sitio web»</b>.", "En <b>«Micrófono»</b>, elija <b>«Permitir»</b>.",
+          "Vuelva a tocar <b>«Dictar con mi voz»</b>."];
+      } else if (equipo === "android") {
+        pasos = ["Toque el ícono a la <b>izquierda de la dirección</b> de la página (un candado o unas rayitas), arriba de la pantalla.",
+          "Toque <b>«Permisos»</b> o <b>«Configuración del sitio»</b>.", "Toque <b>«Micrófono»</b> y elija <b>«Permitir»</b>.",
+          "Vuelva a tocar <b>«Dictar con mi voz»</b>."];
+      } else {
+        pasos = ["Haga clic en el ícono a la <b>izquierda de la dirección</b> de la página (un candado o unas rayitas).",
+          "Busque <b>«Micrófono»</b> y elija <b>«Permitir»</b>.", "Si se lo pide, vuelva a cargar la página.",
+          "Vuelva a tocar <b>«Dictar con mi voz»</b>."];
+      }
+      $("#am-titulo").textContent = "El micrófono está bloqueado";
+      $("#am-texto").innerHTML = "<p>Para dictar, hay que permitir el micrófono. Siga estos pasos:</p><ol>" +
+        pasos.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ol>" +
+        "<p>Si no puede, no se preocupe: escriba su respuesta o pida ayuda a alguien de confianza. Estas preguntas no son obligatorias.</p>";
+      $("#am-si").textContent = "Entendido";
+    }
+    alContinuarMic = continuar || null;
+    focoAntesMic = document.activeElement;
+    $("#aviso").classList.remove("ver");
+    ayudaMic.hidden = false;
+    ayudaMic.scrollTop = 0;
+    $("#am-si").focus({ preventScroll: true });
+  }
+  function cerrarAyudaMic(seguir) {
+    ayudaMic.hidden = true;
+    var fn = alContinuarMic;
+    alContinuarMic = null;
+    if (seguir && fn) fn();
+    else if (focoAntesMic && focoAntesMic.focus) focoAntesMic.focus();
+  }
+  if (ayudaMic) {
+    $("#am-si").addEventListener("click", function () { cerrarAyudaMic(true); });
+    $("#am-no").addEventListener("click", function () { cerrarAyudaMic(false); });
+    ayudaMic.addEventListener("keydown", function (e) { if (e.key === "Escape") cerrarAyudaMic(false); });
+    ayudaMic.addEventListener("click", function (e) { if (e.target === ayudaMic) cerrarAyudaMic(false); });
+  }
+
   function agregarMicrofono(campo) {
     var boton = document.createElement("button");
     boton.type = "button";
@@ -735,6 +808,16 @@
 
     boton.addEventListener("click", function () {
       if (dictando && dictando.campo === campo) { dictando.rec.stop(); return; }
+      if (permisoMic === "denied") { mostrarAyudaMic("bloqueado"); return; }
+      if (permisoMic !== "granted" && !micExplicado) {
+        micExplicado = true;
+        mostrarAyudaMic("pedir", empezar);
+        return;
+      }
+      empezar();
+    });
+
+    function empezar() {
       if (dictando) dictando.rec.stop();
 
       var rec = new Reconocimiento();
@@ -757,7 +840,12 @@
       };
       rec.onerror = function (ev) {
         if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
-          $("#form-status").textContent = "Para dictar, permita el uso del micrófono en su navegador.";
+          permisoMic = "denied";
+          mostrarAyudaMic("bloqueado");
+        } else if (ev.error === "audio-capture") {
+          aviso("No se encontró un micrófono en este equipo. Puede escribir su respuesta.");
+        } else if (ev.error === "network") {
+          aviso("El dictado necesita internet. Revise su conexión o escriba su respuesta.");
         }
       };
       rec.onend = function () {
@@ -770,8 +858,8 @@
       boton.classList.add("grabando");
       boton.querySelector("span").textContent = "Escuchando… toque para terminar";
       campo.focus();
-      rec.start();
-    });
+      try { rec.start(); } catch (err) { rec.onend(); }
+    }
   }
 
   if (Reconocimiento) {

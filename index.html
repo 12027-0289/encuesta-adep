@@ -327,6 +327,19 @@
 
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
+  <!-- Ayuda para el permiso del micrófono (el navegador siempre lo pregunta; aquí se explica qué tocar). -->
+  <div class="ayuda-mic" id="ayuda-mic" role="dialog" aria-modal="true" aria-labelledby="am-titulo" hidden>
+    <div class="am-caja">
+      <span class="am-ico" aria-hidden="true"><i class="fa-solid fa-microphone"></i></span>
+      <h2 id="am-titulo"></h2>
+      <div id="am-texto"></div>
+      <div class="am-botones">
+        <button type="button" class="btn btn-green" id="am-si"></button>
+        <button type="button" class="btn btn-sec" id="am-no">Prefiero escribir</button>
+      </div>
+    </div>
+  </div>
+
 
   <canvas id="confeti" aria-hidden="true"></canvas>
 

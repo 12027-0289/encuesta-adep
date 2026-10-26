@@ -503,6 +503,39 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .mic.grabando i { background: var(--r); animation: escucha 1.2s ease-in-out infinite; }
 @keyframes escucha { 0%, 100% { box-shadow: 0 0 0 0 rgba(229, 37, 33, .5); } 50% { box-shadow: 0 0 0 9px rgba(229, 37, 33, 0); } }
 
+/* ---------- Ayuda para el permiso del micrófono ---------- */
+.ayuda-mic {
+  position: fixed; inset: 0; z-index: 1000; display: flex;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: rgba(4, 73, 42, .55); overflow-y: auto;
+}
+.am-caja {
+  width: min(32rem, 100%); margin: auto; padding: 1.6rem 1.4rem; border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); box-shadow: var(--shadow); text-align: center;
+  border-top: 6px solid var(--g); animation: am-entra .25s ease-out;
+}
+.am-ico { display: inline-grid; place-items: center; width: 4rem; height: 4rem; border-radius: 50%; background: var(--g-soft); color: var(--g); font-size: 1.6rem; }
+.am-caja h2 { margin: .7rem 0 .5rem; font-family: 'Outfit', sans-serif; font-size: 1.5rem; line-height: 1.25; color: var(--head); }
+.am-caja p { margin: 0 0 .9rem; font-size: 1.12rem; line-height: 1.5; }
+.am-caja ol { margin: 0 0 1rem; padding-left: 1.6rem; text-align: left; font-size: 1.1rem; line-height: 1.5; }
+.am-caja ol li { margin-bottom: .45rem; }
+.am-caja b { color: var(--g-dark); }
+/* Dibujo de la pregunta del navegador, con «Permitir» resaltado */
+.am-ejemplo {
+  margin: 0 auto 1.1rem; max-width: 20rem; padding: .9rem 1rem; border-radius: .9rem;
+  border: 1px solid var(--line-strong); background: var(--g-mist); text-align: left; font-size: .98rem;
+}
+.am-ejemplo p { margin: 0 0 .7rem; font-size: .98rem; }
+.am-ejemplo .am-op { display: flex; gap: .6rem; justify-content: flex-end; }
+.am-ejemplo .am-op span { padding: .35rem .9rem; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-soft); font-weight: 600; }
+.am-ejemplo .am-op .am-permitir { border: 3px solid var(--r); color: var(--g-dark); background: var(--surface); font-weight: 800; animation: am-pulso 1.4s ease-in-out infinite; }
+.am-botones { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+.am-botones .btn { min-height: 52px; font-size: 1.05rem; }
+@keyframes am-entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes am-pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(229, 37, 33, .45); } 50% { box-shadow: 0 0 0 7px rgba(229, 37, 33, 0); } }
+@media (prefers-reduced-motion: reduce) { .am-caja, .am-ejemplo .am-op .am-permitir { animation: none; } }
+html.hc .am-caja, html.hc .am-ejemplo { background: #fff !important; color: #000 !important; border: 2px solid #000; }
+
 /* ---------- Final: frase y confeti ---------- */
 .lema-final {
   display: inline-flex; align-items: center; gap: .6rem;
