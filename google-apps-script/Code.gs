@@ -56,13 +56,15 @@ function encabezados_(sheet) {
   return sheet.getLastRow() > 0 && sheet.getLastColumn() > 0
     ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0] : [];
 }
-function existe_(sheet, id) {
-  if (!esId_(id) || sheet.getLastRow() < 2) return false;
+function existe_(sheet, id) { return filaDe_(sheet, id) !== -1; }
+// Número de fila en la hoja (2 = primera respuesta) de la cédula cifrada, o -1 si no está.
+function filaDe_(sheet, id) {
+  if (!esId_(id) || sheet.getLastRow() < 2) return -1;
   var col = encabezados_(sheet).indexOf(COLUMNA_ID);
-  if (col === -1) return false;
+  if (col === -1) return -1;
   var ids = sheet.getRange(2, col + 1, sheet.getLastRow() - 1, 1).getValues();
-  for (var i = 0; i < ids.length; i++) if (ids[i][0] === id) return true;
-  return false;
+  for (var i = 0; i < ids.length; i++) if (ids[i][0] === id) return i + 2;
+  return -1;
 }
 function propiedad_(k) { return PropertiesService.getScriptProperties().getProperty(k); }
 function claveCorrecta_(clave) {
@@ -112,6 +114,8 @@ function filasAnonimas_(sheet) {
 }
 
 // POST { accion: "resultados", clave } -> { ok, filas }
+// POST { accion: "buscar", clave, id } -> { ok, encontrada, n, fila }   (id = cédula cifrada; n = orden de llegada)
+// POST { accion: "borrar", clave, id } -> { ok, borrada }               (para atender una solicitud de borrado)
 // POST { ...respuestas, id_persona, informe_base64 } -> { ok } | { ok: false, duplicado: true }
 function doPost(e) {
   var data;
@@ -119,6 +123,25 @@ function doPost(e) {
   if (data.accion === "resultados") {
     if (!claveCorrecta_(data.clave)) { Utilities.sleep(1500); return responder_({ ok: false, error: "Clave incorrecta." }); }
     return responder_({ ok: true, filas: filas_(hoja_()) });
+  }
+  if (data.accion === "buscar" || data.accion === "borrar") {
+    if (!claveCorrecta_(data.clave)) { Utilities.sleep(1500); return responder_({ ok: false, error: "Clave incorrecta." }); }
+    if (!esId_(data.id)) return responder_({ ok: false, error: "Cédula inválida." });
+    var sheet = hoja_();
+    if (data.accion === "buscar") {
+      var f = filaDe_(sheet, data.id);
+      return responder_(f === -1 ? { ok: true, encontrada: false } : { ok: true, encontrada: true, n: f - 1, fila: filas_(sheet)[f - 2] });
+    }
+    var lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+    try {
+      var fb = filaDe_(sheet, data.id);
+      if (fb === -1) return responder_({ ok: true, borrada: false });
+      sheet.deleteRow(fb);
+      return responder_({ ok: true, borrada: true });
+    } finally {
+      lock.releaseLock();
+    }
   }
   return guardar_(data);
 }

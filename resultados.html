@@ -95,6 +95,16 @@
         <ul class="lista-com" id="lista-com"></ul>
       </div>
 
+      <h2 class="res-sub"><i class="fa-solid fa-id-card"></i> Buscar por cédula</h2>
+      <div class="por-cedula card">
+        <p class="ind-ayuda">Para atender a una persona que pide ver, corregir o borrar su respuesta. La cédula no se guarda: se cifra aquí y se compara.</p>
+        <form id="form-buscar" class="ing-fila">
+          <input class="text" type="text" id="buscar-cedula" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Número de cédula, sin guiones" aria-label="Número de cédula">
+          <button type="submit" class="btn btn-green" id="btn-buscar"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+        </form>
+        <div id="resultado-cedula" aria-live="polite"></div>
+      </div>
+
       <h2 class="res-sub"><i class="fa-solid fa-file-pdf"></i> Respuestas individuales</h2>
       <div class="individuales card">
         <p class="ind-ayuda">Cada respuesta completa, en PDF. Respeta los filtros de arriba.</p>

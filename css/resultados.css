@@ -77,6 +77,23 @@
 .lista-com .c-meta { margin-top: .3rem; font-size: .8rem; color: var(--ink-soft); }
 .lista-com mark { background: #fdf0b8; color: inherit; border-radius: 3px; }
 
+/* Buscar por cédula */
+.por-cedula { padding: 1.1rem 1.25rem; margin-bottom: 2rem; }
+.por-cedula .ing-fila { display: flex; flex-wrap: wrap; gap: .6rem; }
+.por-cedula .ing-fila .text { flex: 1 1 14rem; min-width: 0; min-height: 48px; letter-spacing: .04em; }
+.por-cedula .ing-fila .btn { min-height: 48px; }
+.rc { margin-top: 1rem; padding: 1rem 1.1rem; border-radius: .9rem; background: var(--g-mist); border-left: 4px solid var(--g); }
+.rc p { margin: 0 0 .5rem; }
+.rc .rc-tit { font-weight: 700; color: var(--ink); font-size: 1.05rem; }
+.rc .rc-meta { color: var(--ink-soft); font-size: .92rem; }
+.rc-acciones { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .7rem; }
+.rc-acciones .btn { min-height: 44px; font-size: .95rem; }
+.rc.no { border-left-color: var(--line-strong); }
+.rc.ok-borrada { border-left-color: var(--g); }
+.rc .btn-borrar { border-color: var(--r); color: var(--r); }
+.rc .confirmar { margin-top: .8rem; padding: .8rem 1rem; border-radius: .8rem; background: #fff5f5; border: 1px solid var(--r); }
+.rc .confirmar p { color: var(--ink); font-weight: 600; }
+
 /* Respuestas individuales */
 .individuales { padding: 1.1rem 1.25rem; margin-bottom: 2rem; }
 .ind-ayuda { margin: 0 0 .7rem; color: var(--ink-soft); font-size: .92rem; }

@@ -386,6 +386,85 @@
     });
   });
 
+  /* ---------- Buscar por cédula ---------- */
+  // La cédula se cifra igual que en la encuesta (sal + "|" + cédula, SHA-256) y solo se envía cifrada.
+  function cifrar(cedula) {
+    var bytes = new TextEncoder().encode((cfg.sal || "") + "|" + cedula);
+    return crypto.subtle.digest("SHA-256", bytes).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+    });
+  }
+  function claveSesion() {
+    try { return sessionStorage.getItem(CLAVE_SESION) || ""; } catch (e) { return ""; }
+  }
+  function pedir(accion, id) {
+    return fetch(cfg.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ accion: accion, clave: claveSesion(), id: id }),
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j.ok) throw new Error(j.error || "No se pudo completar.");
+      return j;
+    });
+  }
+  var encontrada = null; // { id, n, fila }
+  function mostrarCedula(html) { $("#resultado-cedula").innerHTML = html; }
+
+  $("#form-buscar").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ced = String($("#buscar-cedula").value || "").replace(/\D/g, "");
+    encontrada = null;
+    if (ced.length < 9 || ced.length > 12) { mostrarCedula('<div class="rc no"><p>Escriba la cédula completa: 9 números (o de 10 a 12 si es DIMEX), sin guiones.</p></div>'); return; }
+    if (demo) { mostrarCedula('<div class="rc no"><p>La búsqueda funciona cuando la encuesta está conectada a la hoja de Google.</p></div>'); return; }
+    var btn = $("#btn-buscar");
+    btn.disabled = true;
+    mostrarCedula('<div class="rc no"><p>Buscando…</p></div>');
+    cifrar(ced).then(function (id) {
+      return pedir("buscar", id).then(function (j) {
+        if (!j.encontrada) { mostrarCedula('<div class="rc no"><p class="rc-tit">No hay ninguna respuesta con esa cédula.</p></div>'); return; }
+        encontrada = { id: id, n: j.n, fila: j.fila };
+        var r = j.fila;
+        mostrarCedula('<div class="rc"><p class="rc-tit">Respuesta #' + j.n + " · " + escapar(nombreFilial(r.filial)) + "</p>" +
+          '<p class="rc-meta">' + escapar([fechaLarga(r.fecha), r.edad, r.antiguedad].filter(Boolean).join(" · ")) + "</p>" +
+          '<div class="rc-acciones"><button type="button" class="btn btn-sec" id="rc-pdf"><i class="fa-solid fa-download"></i> Descargar PDF</button>' +
+          '<button type="button" class="btn btn-sec btn-borrar" id="rc-borrar"><i class="fa-solid fa-trash"></i> Borrar esta respuesta</button></div>' +
+          '<div id="rc-confirmar"></div></div>');
+      });
+    }).catch(function (err) {
+      mostrarCedula('<div class="rc no"><p>' + escapar(err.message === "Failed to fetch" ? "No hay conexión con la hoja de Google. Intente de nuevo." : err.message) + "</p></div>");
+    }).finally(function () { btn.disabled = false; });
+  });
+
+  $("#resultado-cedula").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b || !encontrada) return;
+    if (b.id === "rc-pdf" && window.ADEP_PDF) {
+      conEspera(b, function () {
+        return window.ADEP_PDF.crear(infoPDF(encontrada.fila)).then(function (blob) {
+          descargar(blob, nombreArchivo("Respuesta-" + encontrada.n, nombreFilial(encontrada.fila.filial)));
+        });
+      });
+    } else if (b.id === "rc-borrar") {
+      $("#rc-confirmar").innerHTML = '<div class="confirmar"><p>¿Seguro que quiere borrar esta respuesta? No se puede deshacer. ' +
+        "Descargue antes el PDF si necesita una copia.</p><div class=\"rc-acciones\">" +
+        '<button type="button" class="btn btn-sec btn-borrar" id="rc-si">Sí, borrar</button>' +
+        '<button type="button" class="btn btn-sec" id="rc-no">Cancelar</button></div></div>';
+    } else if (b.id === "rc-no") {
+      $("#rc-confirmar").innerHTML = "";
+    } else if (b.id === "rc-si") {
+      conEspera(b, function () {
+        return pedir("borrar", encontrada.id).then(function (j) {
+          encontrada = null;
+          $("#buscar-cedula").value = "";
+          mostrarCedula(j.borrada
+            ? '<div class="rc ok-borrada"><p class="rc-tit">Respuesta borrada.</p><p class="rc-meta">Ya no aparece en la hoja ni en los resultados. El informe del correo diario se actualiza con la próxima respuesta.</p></div>'
+            : '<div class="rc no"><p>Esa respuesta ya no estaba en la hoja.</p></div>');
+          $("#actualizar").click();
+        });
+      });
+    }
+  });
+
   /* ---------- Excel ---------- */
   $("#excel").addEventListener("click", function () {
     var cols = [];
