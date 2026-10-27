@@ -675,10 +675,24 @@
     cedulaInput.focus();
   }
 
+  // Datos del aviso de privacidad (se cambian en js/config.js).
+  var priv = cfg.privacidad || {};
+  if (priv.contacto) $$(".priv-contacto").forEach(function (el) { el.textContent = priv.contacto; });
+  if (priv.conservacion) $$(".priv-conservacion").forEach(function (el) { el.textContent = priv.conservacion; });
+  $("#acepto").addEventListener("change", function () {
+    if (this.checked) { $(".acepto").classList.remove("falta"); cedulaError.textContent = ""; }
+  });
+
   $("#start").addEventListener("click", function () {
     var ced = limpiarCedula(cedulaInput.value);
     if (ced.length < 9 || ced.length > 12) {
       errorCedula("Escriba su cédula completa: 9 números (o de 10 a 12 si es DIMEX), sin guiones.");
+      return;
+    }
+    if (!$("#acepto").checked) {
+      $(".acepto").classList.add("falta");
+      cedulaError.textContent = "Para continuar, marque la casilla «Leí el aviso de privacidad y acepto participar».";
+      $("#acepto").focus();
       return;
     }
     if (!window.crypto || !crypto.subtle) {
@@ -716,6 +730,7 @@
     refreshAll();
     idPersona = "";
     cedulaInput.value = "";
+    $("#acepto").checked = false;
     $("#thanks").hidden = true;
     $("#review").hidden = true;
     $("#intro").hidden = false;
@@ -766,7 +781,7 @@
         "<p>En algunas preguntas puede hablar en vez de escribir. Para eso, su equipo le preguntará <b>una sola vez</b> si permite usar el micrófono. Toque <b>«Permitir»</b>.</p>" +
         '<div class="am-ejemplo" aria-hidden="true"><p><i class="fa-solid fa-microphone"></i> adep-encuesta.web.app quiere usar su micrófono</p>' +
         '<div class="am-op"><span>Bloquear</span><span class="am-permitir">Permitir</span></div></div>' +
-        "<p>Solo se usa para escribir lo que usted diga. No se graba su voz.</p>";
+        "<p>Su teléfono convierte su voz en texto. ADEP no guarda su voz.</p>";
       $("#am-si").innerHTML = '<i class="fa-solid fa-microphone"></i> Sí, permitir el micrófono';
     } else if (tipo === "pedir") {
       $("#am-titulo").textContent = "Para dictar, su equipo le pedirá permiso";
@@ -774,7 +789,7 @@
         "<p>Al continuar, aparecerá un mensaje preguntando si permite usar el micrófono. Toque <b>«Permitir»</b>.</p>" +
         '<div class="am-ejemplo" aria-hidden="true"><p><i class="fa-solid fa-microphone"></i> adep-encuesta.web.app quiere usar su micrófono</p>' +
         '<div class="am-op"><span>Bloquear</span><span class="am-permitir">Permitir</span></div></div>' +
-        "<p>Solo se usa para escribir lo que usted diga. No se graba su voz.</p>";
+        "<p>Su teléfono convierte su voz en texto. ADEP no guarda su voz.</p>";
       $("#am-si").innerHTML = '<i class="fa-solid fa-microphone"></i> Continuar';
     } else if (esTactil) {
       // Celular: lo más fácil es el micrófono del teclado. Los pasos de configuración quedan como otra opción.

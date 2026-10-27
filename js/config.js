@@ -16,6 +16,13 @@ window.ADEP_CONFIG = {
   // antes de publicar la encuesta y no lo vuelva a cambiar, o no se detectarán repetidos.
   sal: "ADEP-encuesta-servicio-2026",
 
+  // Aviso de privacidad (Ley 8968): a dónde se escribe para ver, corregir o borrar una respuesta,
+  // y hasta cuándo se guardan los datos.
+  privacidad: {
+    contacto: "gerencia@adepcr.org",
+    conservacion: "un año después de cerrar la encuesta",
+  },
+
   // Pregunta 1: filiales y núcleos agrupados por provincia
   // (según la integración de juntas directivas de filiales y núcleos 2023-2026).
   // Agregue o quite nombres aquí; la opción "Otra" siempre aparece al final.
