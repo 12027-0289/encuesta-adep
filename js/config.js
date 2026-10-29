@@ -10,7 +10,7 @@ window.ADEP_CONFIG = {
   // Solo se usa mientras "endpoint" esté vacío: correos que reciben cada respuesta por FormSubmit.co.
   // Cuando se conecta la hoja de Google, los correos se configuran en Google (propiedad CORREOS)
   // y el correo sale desde la cuenta de ADEP con los dos PDF.
-  correos: ["abigail.av2006@gmail.com"],
+  correos: [],
 
   // Texto que se mezcla con la cédula antes de cifrarla (SHA-256). Cámbielo una sola vez
   // antes de publicar la encuesta y no lo vuelva a cambiar, o no se detectarán repetidos.
