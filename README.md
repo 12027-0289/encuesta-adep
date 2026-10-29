@@ -38,7 +38,12 @@ google-apps-script/Code.gs Backend: guarda respuestas en Google Sheets y entrega
 
 Al comenzar se pide la cédula. En el navegador se cifra con SHA-256 junto con el texto `sal`
 de `js/config.js`, y solo ese código cifrado (`id_persona`) se envía. El script de Google
-rechaza una segunda respuesta con el mismo código. Cambie `sal` una sola vez antes de publicar.
+rechaza una segunda respuesta con el mismo código. Cambie `sal` una sola vez antes de publicar
+(y póngala igual en `SAL` de `google-apps-script/Code.gs`).
+
+**Padrón:** si en la hoja de Google hay una pestaña **Padrón** con las cédulas de las personas asociadas,
+solo esas pueden responder; así no se puede contestar con cédulas inventadas. Sin esa pestaña se acepta
+cualquier cédula. Vea **[INSTALAR-BACKEND.md](INSTALAR-BACKEND.md)**, paso 6b.
 
 ## Dictado por voz
 

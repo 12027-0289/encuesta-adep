@@ -87,6 +87,29 @@ endpoint: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec",
 Guarde, haga commit y súbalo a GitHub (`git push`). Desde ese momento las respuestas se guardan en la hoja,
 el correo diario sale desde la cuenta de ADEP, y ya no se usa FormSubmit.
 
+## 6b. Padrón: que solo respondan personas asociadas (recomendado)
+
+Sin padrón, cualquiera puede escribir una cédula inventada y responder varias veces.
+Con el padrón, la encuesta solo acepta las cédulas de la lista.
+
+1. En la hoja de cálculo, abajo a la izquierda, presione **+** para crear una pestaña nueva y llámela **Padrón**
+   (con tilde, exactamente así).
+2. En la **columna A** pegue las cédulas de las personas asociadas, una por fila. Pueden ir con o sin guiones
+   (`102340567`, `1-0234-0567` o `1-234-567`). Si la primera fila es un título, no importa.
+3. **No escriba nada en la columna B**: ahí el script guarda la cédula cifrada, solo.
+4. Opcional: en Apps Script ejecute **prepararPadron**. En el registro debe decir «Listo: N cédulas en el padrón».
+   Si no lo hace, se prepara solo con la primera persona que entre (puede tardar unos segundos esa vez).
+
+Para agregar a una persona, escriba su cédula al final de la columna A. Para quitarla, borre la fila completa.
+Si la pestaña **Padrón** no existe o está vacía, la encuesta acepta cualquier cédula, como antes.
+
+Quien no esté en la lista ve: «Esta cédula no aparece en la lista de personas asociadas de ADEP…» con el correo
+de contacto de `js/config.js`.
+
+> Después de pegar la versión nueva de `Code.gs`, recuerde **Implementar → Gestionar implementaciones → ✏️ →
+> Versión: Nueva versión → Implementar** (vea «Bueno saber»). Si no, Google sigue usando el código anterior y el
+> padrón no se revisa.
+
 ## 7. Prueba final
 
 1. Responda la encuesta con una cédula de prueba.
@@ -94,6 +117,7 @@ el correo diario sale desde la cuenta de ADEP, y ya no se usa FormSubmit.
 3. En Apps Script ejecute **enviarResumenDiario**: debe llegar el correo con el informe general.
    En la página de resultados, descargue el PDF de la respuesta y el informe general.
 4. Intente responder otra vez con la misma cédula: debe decir que ya respondió.
+   Si cargó el padrón, pruebe también una cédula que no esté en la lista: debe decir que no aparece.
 5. Borre la fila de prueba de la hoja antes de compartir la encuesta.
 
 ---

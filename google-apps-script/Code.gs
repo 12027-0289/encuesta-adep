@@ -2,7 +2,8 @@
  * Backend de la Encuesta de Servicio ADEP (Google Apps Script + Google Sheets).
  *
  * Con cada respuesta:
- *   1. La guarda como una fila en la hoja "Respuestas" (y rechaza cédulas repetidas).
+ *   1. La guarda como una fila en la hoja "Respuestas" (y rechaza cédulas repetidas y,
+ *      si hay padrón, las cédulas que no están en él).
  *   2. Guarda el informe general con gráficos (PDF) que arma la encuesta con todas las respuestas
  *      hasta ese momento. (Para armarlo, la encuesta pide aquí solo números: GET ?resumen=1.
  *       Nunca se entregan cédulas, filiales ni comentarios.)
@@ -22,12 +23,18 @@
  *   MS_SECRET         valor del secreto de cliente
  *   MS_REMITENTE      correo de Microsoft 365 desde el que salen los resultados
  * Si faltan, o si Microsoft falla, el correo sale desde esta cuenta de Gmail.
+ *
+ * Padrón (opcional): en una pestaña llamada "Padrón", columna A, las cédulas de las personas asociadas.
+ * Si existe, solo esas cédulas pueden responder. Si no existe o está vacía, se acepta cualquier cédula.
  */
 var HOJA = "Respuestas";
 var HOJA_INFORME = "_informe";   // hoja oculta donde se guarda el último informe general (PDF)
 var HORA_RESUMEN = 16;           // hora del correo diario (hora de Costa Rica)
 var ZONA = "America/Costa_Rica";
 var COLUMNA_ID = "id_persona";
+var HOJA_PADRON = "Padrón";
+// Debe ser igual a "sal" de js/config.js (la cédula se cifra así: SHA-256 de sal + "|" + cédula).
+var SAL = "ADEP-encuesta-servicio-2026";
 var MAX_TEXTO = 2000;
 var MAX_PDF = 3 * 1024 * 1024; // tamaño máximo del PDF individual (en caracteres base64)
 
@@ -92,14 +99,69 @@ function filas_(sheet) {
   });
 }
 
+/* ======================= Padrón ======================= */
+// Cédula con solo números. Acepta 1-0234-0567, 1 0234 0567 y la forma corta 1-234-567.
+function normalizarCedula_(v) {
+  var t = String(v === undefined || v === null ? "" : v).trim();
+  var p = t.match(/^(\d)\D+(\d{1,4})\D+(\d{1,4})$/);
+  if (p) return p[1] + ("000" + p[2]).slice(-4) + ("000" + p[3]).slice(-4);
+  t = t.replace(/\D/g, "");
+  return t.length >= 9 && t.length <= 12 ? t : "";
+}
+function cifrar_(cedula) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, SAL + "|" + cedula, Utilities.Charset.UTF_8)
+    .map(function (b) { return ("0" + (b & 255).toString(16)).slice(-2); }).join("");
+}
+function padron_() {
+  var h = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HOJA_PADRON);
+  return h && h.getLastRow() > 0 ? h : null;
+}
+// La columna B la llena el script con la cédula cifrada de la columna A (solo en las filas donde falta).
+// Las filas que no son cédulas (por ejemplo, un título) se dejan en blanco.
+function completarPadron_(h) {
+  var n = h.getLastRow(), v = h.getRange(1, 1, n, 2).getValues(), cambio = false;
+  var b = v.map(function (f) {
+    if (f[1] !== "" || String(f[0]).trim() === "") return [f[1]];
+    var c = normalizarCedula_(f[0]);
+    if (!c) return [f[1]];
+    cambio = true;
+    return [cifrar_(c)];
+  });
+  if (cambio) h.getRange(1, 2, n, 1).setValues(b);
+}
+// true si la cédula cifrada está en el padrón, o si no hay padrón.
+function enPadron_(id) {
+  var h = padron_();
+  if (!h) return true;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try { completarPadron_(h); } finally { lock.releaseLock(); }
+  return !!h.getRange(1, 2, h.getLastRow(), 1).createTextFinder(id).matchEntireCell(true).findNext();
+}
+// Si se cambia una cédula de la columna A, se borra su cifrado para que se vuelva a calcular.
+function onEdit(e) {
+  var r = e && e.range;
+  if (!r || r.getSheet().getName() !== HOJA_PADRON || r.getColumn() > 1) return;
+  r.getSheet().getRange(r.getRow(), 2, r.getNumRows(), 1).clearContent();
+}
+// Opcional: ejecútela desde el editor después de pegar el padrón, para que la primera persona no espere.
+function prepararPadron() {
+  var h = padron_();
+  if (!h) { console.log("No hay pestaña \"" + HOJA_PADRON + "\" con cédulas: la encuesta acepta cualquier cédula."); return; }
+  completarPadron_(h);
+  var ids = h.getRange(1, 2, h.getLastRow(), 1).getValues().filter(function (f) { return esId_(f[0]); }).length;
+  console.log("Listo: " + ids + " cédulas en el padrón.");
+}
+
 /* ======================= Entradas ======================= */
-// GET ?verificar=<id>  ->  { existe: true | false }
+// GET ?verificar=<id>  ->  { existe: true | false, enPadron: true | false }
 // GET ?resumen=1       ->  { ok, filas: [...] }  solo datos para gráficos (sin cédula, filial ni comentarios)
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.resumen) return responder_({ ok: true, filas: filasAnonimas_(hoja_()) });
   if (!p.verificar) return responder_({ ok: true, servicio: "Encuesta ADEP" });
-  return responder_({ existe: existe_(hoja_(), p.verificar) });
+  if (!esId_(p.verificar)) return responder_({ existe: false, enPadron: false });
+  return responder_({ existe: existe_(hoja_(), p.verificar), enPadron: enPadron_(p.verificar) });
 }
 
 var CAMPOS_GRAFICOS = ["edad", "antiguedad", "servicios_utilizados", "mejora_bienestar", "recomendaria_adep",
@@ -116,7 +178,7 @@ function filasAnonimas_(sheet) {
 // POST { accion: "resultados", clave } -> { ok, filas }
 // POST { accion: "buscar", clave, id } -> { ok, encontrada, n, fila }   (id = cédula cifrada; n = orden de llegada)
 // POST { accion: "borrar", clave, id } -> { ok, borrada }               (para atender una solicitud de borrado)
-// POST { ...respuestas, id_persona, informe_base64 } -> { ok } | { ok: false, duplicado: true }
+// POST { ...respuestas, id_persona, informe_base64 } -> { ok } | { ok: false, duplicado: true } | { ok: false, noAsociado: true }
 function doPost(e) {
   var data;
   try { data = JSON.parse(e.postData.contents); } catch (err) { return responder_({ ok: false, error: "Datos inválidos." }); }
@@ -149,6 +211,7 @@ function doPost(e) {
 function guardar_(data) {
   if (!esId_(data[COLUMNA_ID])) return responder_({ ok: false, error: "Falta la identificación." });
   if (!data.filial || !data.edad) return responder_({ ok: false, error: "Faltan respuestas obligatorias." });
+  if (!enPadron_(data[COLUMNA_ID])) return responder_({ ok: false, noAsociado: true });
 
   var sheet = hoja_();
   var lock = LockService.getScriptLock();

@@ -328,13 +328,17 @@
     } catch (e) { /* nada */ }
   }
 
-  // Pregunta al servidor (Google Apps Script) si esa cédula ya respondió.
-  function yaRespondio(id) {
-    if (idsLocales().indexOf(id) !== -1) return Promise.resolve(true);
-    if (!cfg.endpoint) return Promise.resolve(false);
+  // Pregunta al servidor (Google Apps Script) si esa cédula ya respondió y si está en el padrón de ADEP.
+  function verificarCedula(id) {
+    if (idsLocales().indexOf(id) !== -1) return Promise.resolve({ existe: true });
+    if (!cfg.endpoint) return Promise.resolve({ existe: false });
     return fetch(cfg.endpoint + "?verificar=" + encodeURIComponent(id))
       .then(function (r) { return r.json(); })
-      .then(function (j) { return !!j.existe; });
+      .then(function (j) { return { existe: !!j.existe, noAsociado: j.enPadron === false }; });
+  }
+  function mensajeNoAsociado() {
+    return "Esta cédula no aparece en la lista de personas asociadas de ADEP. Revise el número; si está bien, escriba a " +
+      (priv.contacto || "ADEP") + ".";
   }
 
   /* ---------- Repaso antes de enviar ---------- */
@@ -405,6 +409,7 @@
       body: JSON.stringify(data),
     }).then(function (r) { return r.json(); }).then(function (j) {
       if (j.duplicado) throw new Error("duplicado");
+      if (j.noAsociado) throw new Error("noAsociado");
       if (!j.ok) throw new Error("error");
     });
   }
@@ -647,8 +652,10 @@
       prepararFinal();
       setTimeout(confeti, 250);
     }).catch(function (err) {
-      $("#review-status").textContent = err && err.message === "duplicado"
+      var motivo = err && err.message;
+      $("#review-status").textContent = motivo === "duplicado"
         ? "Esta cédula ya respondió la encuesta. Solo se permite una respuesta por persona."
+        : motivo === "noAsociado" ? mensajeNoAsociado()
         : "No se pudo enviar. Revise su conexión e intente de nuevo.";
     }).finally(function () {
       btn.disabled = false;
@@ -703,10 +710,14 @@
     btn.disabled = true;
     cifrar(ced).then(function (id) {
       idPersona = id;
-      return yaRespondio(id);
-    }).then(function (respondio) {
-      if (respondio) {
+      return verificarCedula(id);
+    }).then(function (v) {
+      if (v.existe) {
         errorCedula("Esta cédula ya respondió la encuesta. ¡Gracias por su participación!");
+        return;
+      }
+      if (v.noAsociado) {
+        errorCedula(mensajeNoAsociado());
         return;
       }
       DRAFT_KEY = "adep-encuesta-borrador-" + idPersona.slice(0, 16);
